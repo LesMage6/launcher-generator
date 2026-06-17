@@ -1,6 +1,10 @@
 {
-    "mods": [
-        "https://raw.githubusercontent.com/LesMage6/launcher-generator/main/mods/sodium.json",
-        "https://raw.githubusercontent.com/LesMage6/launcher-generator/main/mods/lithium.json"
-    ]
+    "sodium": {
+        "url": "https://raw.githubusercontent.com/LesMage6/launcher-generator/main/mods/sodium.json",
+        "type": "name_pack"
+    },
+    "lithium": {
+        "url": "https://raw.githubusercontent.com/LesMage6/launcher-generator/main/mods/lithium.json",
+        "type": "name_pack"
+    }
 }
