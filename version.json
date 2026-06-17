@@ -1,5 +1,5 @@
 {
     "version": "1.0.1",
-    "download": "https://github.com/LesMage6/launcher-generator/blob/main/version.json",
-    "changelog": "Ajout du système Fabric + corrections."
+    "download": "https://raw.githubusercontent.com/LesMage6/launcher-generator/main/app.zip",
+    "changelog": "Première mise à jour : help, chat, Fabric."
 }
