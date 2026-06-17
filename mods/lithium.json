@@ -1,10 +1,11 @@
 {
-    "name": "Lithium",
-    "id": "lithium",
-    "description": "Module d’amélioration de la stabilité et de la vitesse.",
-    "version": "1.0.0",
-    "download": "https://raw.githubusercontent.com/LesMage6/launcher-generator/main/mods/lithium.zip",
-    "size": "0.9 MB",
-    "author": "Mage Compagny",
-    "icon": "https://raw.githubusercontent.com/LesMage6/launcher-generator/main/mods/lithium.png"
+    "name": "Sodium",
+    "id": "sodium",
+    "description": "Ajoute des noms futuristes et sci-fi.",
+    "free": true,
+    "type": "name_pack",
+    "content": {
+        "M": ["Kaelis", "Orion", "Zyran", "Vexon", "Arcturus", "Nexar", "Solan", "Draykos"],
+        "F": ["Nova", "Elyndra", "Nyxara", "Zelphi", "Astria", "Kalyra", "Vespera", "Lunaris"]
+    }
 }
