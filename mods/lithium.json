@@ -1,11 +1,11 @@
 {
-    "name": "Sodium",
-    "id": "sodium",
-    "description": "Ajoute des noms futuristes et sci-fi.",
+    "name": "Lithium",
+    "id": "lithium",
+    "description": "Ajoute des noms antiques (Rome, Grèce, Égypte...).",
     "free": true,
     "type": "name_pack",
     "content": {
-        "M": ["Kaelis", "Orion", "Zyran", "Vexon", "Arcturus", "Nexar", "Solan", "Draykos"],
-        "F": ["Nova", "Elyndra", "Nyxara", "Zelphi", "Astria", "Kalyra", "Vespera", "Lunaris"]
+        "M": ["Cassius", "Octavius", "Marcus", "Horatius", "Leonidas", "Amon", "Darius", "Hector"],
+        "F": ["Aurelia", "Valeria", "Lysandra", "Selene", "Hypatia", "Isis", "Thalia", "Nefertari"]
     }
 }
