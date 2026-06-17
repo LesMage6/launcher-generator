@@ -1,10 +1,11 @@
 {
     "name": "Sodium",
     "id": "sodium",
-    "description": "Module d’optimisation des performances.",
-    "version": "1.0.0",
-    "download": "https://raw.githubusercontent.com/LesMage6/launcher-generator/main/mods/sodium.zip",
-    "size": "1.2 MB",
-    "author": "Mage Compagny",
-    "icon": "https://raw.githubusercontent.com/LesMage6/launcher-generator/main/mods/sodium.png"
+    "description": "Ajoute des noms futuristes et sci-fi.",
+    "free": true,
+    "type": "name_pack",
+    "content": {
+        "M": ["Kaelis", "Orion", "Zyran", "Vexon", "Arcturus", "Nexar", "Solan", "Draykos"],
+        "F": ["Nova", "Elyndra", "Nyxara", "Zelphi", "Astria", "Kalyra", "Vespera", "Lunaris"]
+    }
 }
