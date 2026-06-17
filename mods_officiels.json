@@ -1,0 +1,12 @@
+{
+    "sodium": {
+        "name": "Sodium",
+        "version": "0.5.2",
+        "url": "https://raw.githubusercontent.com/LesMage6/launcher-generator/main/mods/sodium.zip"
+    },
+    "lithium": {
+        "name": "Lithium",
+        "version": "0.12.0",
+        "url": "https://raw.githubusercontent.com/LesMage6/launcher-generator/main/mods/lithium.zip"
+    }
+}
