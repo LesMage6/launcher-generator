@@ -1,5 +1,5 @@
 {
-    "version": "1.2.0",
-    "download": "https://raw.githubusercontent.com/TonCompte/LauncherServer/main/app.zip",
+    "version": "1.0.1",
+    "download": "https://github.com/LesMage6/launcher-generator/blob/main/version.json",
     "changelog": "Ajout du système Fabric + corrections."
 }
