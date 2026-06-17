@@ -1,0 +1,10 @@
+{
+    "name": "Lithium",
+    "id": "lithium",
+    "description": "Module d’amélioration de la stabilité et de la vitesse.",
+    "version": "1.0.0",
+    "download": "https://raw.githubusercontent.com/LesMage6/launcher-generator/main/mods/lithium.zip",
+    "size": "0.9 MB",
+    "author": "Mage Compagny",
+    "icon": "https://raw.githubusercontent.com/LesMage6/launcher-generator/main/mods/lithium.png"
+}
