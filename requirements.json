@@ -2,18 +2,36 @@
     "minimum": {
         "ram_mb": 256,
         "cpu_ghz": 0.8,
-        "python_version": "3.8",
+        "python_version": "3.14",
         "internet_required": true,
-        "modules": ["requests", "psutil"],
-        "os": ["Windows", "Linux", "MacOS"]
+        "modules": [
+            "requests",
+            "psutil",
+            "pygame-ce",
+            "tkinter"
+        ],
+        "os": [
+            "Windows 10",
+            "Linux",
+            "MacOS"
+        ]
     },
 
     "recommended": {
         "ram_mb": 1024,
         "cpu_ghz": 1.6,
-        "python_version": "3.10",
+        "python_version": "3.14",
         "internet_required": true,
-        "modules": ["requests", "psutil"],
-        "os": ["Windows 10", "Linux (kernel 5+)", "MacOS 12+"]
+        "modules": [
+            "requests",
+            "psutil",
+            "pygame-ce",
+            "tkinter"
+        ],
+        "os": [
+            "Windows 11",
+            "Linux (kernel 5+)",
+            "MacOS 12+"
+        ]
     }
 }
