@@ -3,10 +3,47 @@ import json
 import requests
 import os
 import sys
+import requests
+import platform
+import psutil
 
-VERSION = "1.0.4"
+VERSION = "1.0.5"
 GITHUB_RAW_URL = "https://raw.githubusercontent.com/LesMage6/launcher-generator/refs/heads/main/g%C3%A9n%C3%A9rateur%20de%20nom1.0.py"
-NOTE_DE_MISE_Â_JOUR = "Optimisation du programme"
+NOTE_DE_MISE_Â_JOUR = "Mise à jour du système d'update"
+REQ_URL = "https://raw.githubusercontent.com/LesMage6/launcher-generator/refs/heads/main/requirements.json"
+
+def check_system_requirements():
+    try:
+        print("→ Vérification du matériel...")
+        data = requests.get(REQ_URL).json()
+
+        # Infos système
+        ram_mb = psutil.virtual_memory().total // (1024 * 1024)
+        cpu_ghz = psutil.cpu_freq().current / 1000
+        python_ver = platform.python_version()
+
+        min_req = data["minimum"]
+        rec_req = data["recommended"]
+
+        print(f"RAM détectée : {ram_mb} MB")
+        print(f"CPU détecté : {cpu_ghz:.2f} GHz")
+        print(f"Python détecté : {python_ver}")
+
+        # Vérification minimum
+        if ram_mb < min_req["ram_mb"] or cpu_ghz < min_req["cpu_ghz"]:
+            print("⚠️ Votre appareil ne respecte PAS les exigences minimales.")
+            return
+
+        # Vérification recommandée
+        if ram_mb < rec_req["ram_mb"] or cpu_ghz < rec_req["cpu_ghz"]:
+            print("⚠️ Votre appareil fonctionne, mais n’atteint pas les performances recommandées.")
+            print("→ Le programme peut être plus lent.")
+        else:
+            print("✔️ Votre appareil respecte les performances recommandées.")
+
+    except Exception as e:
+        print("Erreur lors de la vérification du matériel :", e)
+
 
 def check_update():
     try:
@@ -528,6 +565,7 @@ def generate_faction():
         "Objectif": random.choice(faction_cards["Objectif"])
     }
 
+check_system_requirements()
 check_update()
 
 # ============================
