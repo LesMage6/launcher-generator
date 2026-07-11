@@ -1,5 +1,44 @@
 import random
 import json
+import requests
+import os
+import sys
+
+VERSION = "1.0.0"
+GITHUB_RAW_URL = "https://raw.githubusercontent.com/LM6Dev/MonRepo/main/monprogramme.py"
+
+def check_update():
+    try:
+        print("→ Vérification des mises à jour...")
+        remote_code = requests.get(GITHUB_RAW_URL).text
+
+        # Vérifie la version distante
+        for line in remote_code.splitlines():
+            if line.startswith("VERSION"):
+                remote_version = line.split("=")[1].strip().replace('"', '')
+                break
+        else:
+            print("Impossible de trouver la version distante.")
+            return
+
+        if remote_version != VERSION:
+            print(f"Nouvelle version trouvée : {remote_version} (local : {VERSION})")
+            update_program(remote_code)
+        else:
+            print("Aucune mise à jour disponible.")
+    except Exception as e:
+        print("Erreur lors de la vérification :", e)
+
+def update_program(new_code):
+    print("→ Mise à jour en cours...")
+    filename = sys.argv[0]
+
+    with open(filename, "w", encoding="utf-8") as f:
+        f.write(new_code)
+
+    print("→ Mise à jour terminée ! Redémarrage...")
+    os.execv(sys.executable, ["python"] + sys.argv)
+
 
 # ============================
 #   BASE DE DONNÉES DES NOMS
