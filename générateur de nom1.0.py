@@ -4,7 +4,7 @@ import requests
 import os
 import sys
 
-VERSION = "1.0.0"
+VERSION = "1.0.1"
 GITHUB_RAW_URL = "https://raw.githubusercontent.com/LM6Dev/MonRepo/main/monprogramme.py"
 
 def check_update():
@@ -539,6 +539,8 @@ def generate_faction():
         "Ennemi juré": random.choice(faction_cards["Ennemi juré"]),
         "Objectif": random.choice(faction_cards["Objectif"])
     }
+
+check_update()
 
 # ============================
 #   BOUCLE DE COMMANDE
