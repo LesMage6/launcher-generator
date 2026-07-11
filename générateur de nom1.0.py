@@ -7,9 +7,9 @@ import requests
 import platform
 import psutil
 
-VERSION = "1.0.5"
+VERSION = "1.0.6"
 GITHUB_RAW_URL = "https://raw.githubusercontent.com/LesMage6/launcher-generator/refs/heads/main/g%C3%A9n%C3%A9rateur%20de%20nom1.0.py"
-NOTE_DE_MISE_Â_JOUR = "Mise à jour du système d'update"
+NOTE_DE_MISE_Â_JOUR = "Ajout d'une interface visuel."
 REQ_URL = "https://raw.githubusercontent.com/LesMage6/launcher-generator/refs/heads/main/requirements.json"
 
 def check_system_requirements():
@@ -568,142 +568,91 @@ def generate_faction():
 check_system_requirements()
 check_update()
 
-# ============================
-#   BOUCLE DE COMMANDE
-# ============================
+#   Tkinter
 
-print("=== IA Génératrice de Noms, Personnages, Quêtes & Factions ===")
-print("Pour voir la liste des commandes, tapez help\n")
+import tkinter as tk
+from tkinter import ttk, messagebox
 
-while True:
-    cmd = input(">> ").strip().split()
+# Interface Tkinter
 
-    if not cmd:
-        continue
+def afficher(texte):
+    output.delete("1.0", tk.END)
+    output.insert(tk.END, texte)
 
-    action = cmd[0].lower()
+def ui_start():
+    gender = gender_var.get()
+    origin = origin_var.get() or None
+    afficher(generate_name(gender, origin))
 
-    # HELP
-    if action == "help":
-        print("""
-Commandes disponibles :
-  start [M/F] {origine}        → Génère un nom
-  idea6 [M/F] {origine}        → Génère un personnage simple
-  fullidea [M/F] {origine}     → Génère un personnage avancé
-  ideaQ [type]                 → Génère une quête (principale / secondaire / compagnon)
-  ideaF                        → Génère une faction
-  addname origine M/F nom      → Ajoute un nom
-  origins                      → Liste les origines et nombres de noms
-  randomset nombre             → Génère plusieurs personnages
-  export [M/F] {origine}       → Export JSON d'un personnage
-  quit                         → Quitte le programme
-  verifie                      → Vérifie les mises à jour
-  info_app                     → Donne les information de l'application
-""")
+def ui_idea6():
+    gender = gender_var.get()
+    origin = origin_var.get() or None
+    perso = generate_idea6(gender, origin)
+    afficher(json.dumps(perso, indent=4, ensure_ascii=False))
 
-    elif action == "info_app":
-        print(f"""
-   1. Information Générale :
-     Nom du programme : Générateur de Nom
-     Version Générale du Programme : 1.0
-     Version Exacte du Programme : {VERSION}
-     Note de Mise à jour : {NOTE_DE_MISE_Â_JOUR}
-   2. Information des mises à jour :
-     Le programme est directement connecté à un Repo GitHub pour mettre à jour le programme.
-     Ces mises à jour change donc le code du Programme
-   3. Autres Information :
-     Ce Programme n'utilise pas d'IA, mais, seulement du Hasard
-     Il est totalement gratuit et libre d'accès
-   4. Informations sur la création de version cracké
-     Il est autorisé de créer des version cracké de ce programme pour diverses raisons.
-     Attention : Les mise à jour modifie totalement le code.
-     Les version cracké peut être transformé en version normal si le lien vers le GitHub n'est pas changé ou que la définition de mises à jour n'est pas modifier.
-""")
+def ui_fullidea():
+    gender = gender_var.get()
+    origin = origin_var.get() or None
+    perso = generate_fullidea(gender, origin)
+    afficher(json.dumps(perso, indent=4, ensure_ascii=False))
 
+def ui_quest():
+    qtype = quest_var.get()
+    q = generate_quest(qtype)
+    afficher(json.dumps(q, indent=4, ensure_ascii=False))
 
-    elif action in ["quit", "exit", "q"]:
-        confirm = input("Voulez-vous vraiment quitter ? (y/n)").lower()
-        if confirm == "y":
-            print("Fermeture...")
-            break
-        else:
-            print("Annulé.")
-            
-    elif action == "verifie":
-        check_update()
-            
-    # START
-    elif action == "start":
-        if len(cmd) == 2:
-            print("→", generate_name(cmd[1]))
-        elif len(cmd) == 3:
-            print("→", generate_name(cmd[1], cmd[2]))
-        else:
-            print("Format : start [M/F] {origine}")
+def ui_faction():
+    f = generate_faction()
+    afficher(json.dumps(f, indent=4, ensure_ascii=False))
 
-    # IDEA6
-    elif action == "idea6":
-        gender = cmd[1]
-        origin = cmd[2] if len(cmd) == 3 else None
-        perso = generate_idea6(gender, origin)
+def ui_update():
+    check_update()
+    messagebox.showinfo("Mise à jour", "Vérification terminée.")
 
-        print("\n=== PERSONNAGE GÉNÉRÉ ===")
-        print(json.dumps(perso, indent=4, ensure_ascii=False))
+def ui_requirements():
+    check_system_requirements()
+    messagebox.showinfo("Matériel", "Vérification terminée.")
 
-    # FULLIDEA
-    elif action == "fullidea":
-        gender = cmd[1]
-        origin = cmd[2] if len(cmd) == 3 else None
-        perso = generate_fullidea(gender, origin)
-        print(json.dumps(perso, indent=4, ensure_ascii=False))
+def ui_quit():
+    root.destroy()
 
-    # IDEAQ
-    elif action == "ideaq":
-        if len(cmd) != 2:
-            print("Format : ideaQ [principale/secondaire/compagnon]")
-        else:
-            q = generate_quest(cmd[1])
-            print(json.dumps(q, indent=4, ensure_ascii=False))
+# === Fenêtre ===
 
-    # IDEAF
-    elif action == "ideaf":
-        f = generate_faction()
-        print(json.dumps(f, indent=4, ensure_ascii=False))
+root = tk.Tk()
+root.title(f"Générateur de Nom v{VERSION}")
+root.geometry("900x600")
 
-    # ADDNAME
-    elif action == "addname":
-        if len(cmd) < 4:
-            print("Format : addname origine M/F nom")
-        else:
-            origin, gender, name = cmd[1], cmd[2].upper(), " ".join(cmd[3:])
-            if origin not in names:
-                print("Origine inconnue.")
-            else:
-                names[origin][gender].append(name)
-                print(f"Nom ajouté : {name} ({gender}, {origin})")
+# === Zone d'affichage ===
 
-    # ORIGINS
-    elif action == "origins":
-        for origin in names:
-            print(f"{origin} : M={len(names[origin]['M'])}, F={len(names[origin]['F'])}")
+output = tk.Text(root, height=25, width=80, font=("Consolas", 11))
+output.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True)
 
-    # RANDOMSET
-    elif action == "randomset":
-        if len(cmd) != 2 or not cmd[1].isdigit():
-            print("Format : randomset nombre")
-        else:
-            n = int(cmd[1])
-            for i in range(n):
-                perso = generate_idea6(random.choice(["M", "F"]))
-                print(f"\n--- Personnage {i+1} ---")
-                print(json.dumps(perso, indent=4, ensure_ascii=False))
+# === Menu ===
 
-    # EXPORT
-    elif action == "export":
-        gender = cmd[1]
-        origin = cmd[2] if len(cmd) == 3 else None
-        perso = generate_idea6(gender, origin)
-        print(json.dumps(perso, indent=4, ensure_ascii=False))
+menu = tk.Frame(root)
+menu.pack(side=tk.LEFT, fill=tk.Y)
 
-    else:
-        print("Commande inconnue.")
+tk.Label(menu, text="Genre :", font=("Arial", 12)).pack()
+gender_var = tk.StringVar(value="M")
+ttk.Combobox(menu, textvariable=gender_var, values=["M", "F"]).pack()
+
+tk.Label(menu, text="Origine :", font=("Arial", 12)).pack()
+origin_var = tk.StringVar()
+ttk.Combobox(menu, textvariable=origin_var, values=list(names.keys())).pack()
+
+tk.Label(menu, text="Type de quête :", font=("Arial", 12)).pack()
+quest_var = tk.StringVar(value="principale")
+ttk.Combobox(menu, textvariable=quest_var, values=["principale", "secondaire", "compagnon"]).pack()
+
+# === Boutons ===
+
+tk.Button(menu, text="Générer un nom", command=ui_start).pack(fill=tk.X)
+tk.Button(menu, text="Personnage simple", command=ui_idea6).pack(fill=tk.X)
+tk.Button(menu, text="Personnage avancé", command=ui_fullidea).pack(fill=tk.X)
+tk.Button(menu, text="Quête", command=ui_quest).pack(fill=tk.X)
+tk.Button(menu, text="Faction", command=ui_faction).pack(fill=tk.X)
+tk.Button(menu, text="Vérifier mise à jour", command=ui_update).pack(fill=tk.X)
+tk.Button(menu, text="Vérifier matériel", command=ui_requirements).pack(fill=tk.X)
+tk.Button(menu, text="Quitter", command=ui_quit).pack(fill=tk.X)
+
+root.mainloop()
