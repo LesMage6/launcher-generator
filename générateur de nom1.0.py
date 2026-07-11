@@ -4,7 +4,7 @@ import requests
 import os
 import sys
 
-VERSION = "1.0.3.1"
+VERSION = "1.0.4"
 GITHUB_RAW_URL = "https://raw.githubusercontent.com/LesMage6/launcher-generator/refs/heads/main/g%C3%A9n%C3%A9rateur%20de%20nom1.0.py"
 NOTE_DE_MISE_Â_JOUR = "Optimisation du programme"
 
