@@ -4,7 +4,7 @@ import requests
 import os
 import sys
 
-VERSION = "1.0.1"
+VERSION = "1.0.2"
 GITHUB_RAW_URL = "https://raw.githubusercontent.com/LesMage6/launcher-generator/refs/heads/main/g%C3%A9n%C3%A9rateur%20de%20nom1.0.py"
 
 def check_update():
@@ -49,12 +49,14 @@ names = {
         "M": [
             "Louis", "Arthur", "Hugo", "Gabriel", "Théo", "Adrien", "Mathis", "Noah", "Evan", "Sébastien",
             "Clément", "Raphaël", "Jules", "Maxime", "Valentin", "Antoine", "Baptiste", "Quentin", "Léo", "Timothée",
-            "Adrien", "Bastien", "Corentin", "Florian", "Gaëtan", "Jérémy", "Loïc", "Maël", "Romain", "Thibault"
+            "Adrien", "Bastien", "Corentin", "Florian", "Gaëtan", "Jérémy", "Loïc", "Maël", "Romain", "Thibault",
+            "Alexis", "Alex", "Alexandre"
         ],
         "F": [
             "Emma", "Louise", "Chloé", "Inès", "Camille", "Sarah", "Léna", "Manon", "Elena", "Alicia",
             "Zoé", "Anaïs", "Lucie", "Maëlle", "Océane", "Juliette", "Margot", "Élise", "Nina", "Adèle",
-            "Amélie", "Clara", "Élodie", "Flavie", "Jade", "Laurie", "Mélissa", "Romane", "Solène", "Tessa"
+            "Amélie", "Clara", "Élodie", "Flavie", "Jade", "Laurie", "Mélissa", "Romane", "Solène", "Tessa",
+            "Julia"
         ]
     },
 
@@ -287,13 +289,13 @@ names = {
     }
 }
 
-default_origins = ["fr", "en", "jp", "ch", "russe"]
+default_origins = ["fr", "en", "jp", "ch", "russe", "grec"]
 
 # ============================
 #   LISTES POUR IDEA6
 # ============================
 
-elements = ["Vent", "Lumière", "Roche", "Feu", "Foudre", "Eau", "Ombre", "Plante"]
+elements = ["Vent", "Lumière", "Roche", "Feu", "Foudre", "Eau", "Ombre", "Plante", "Glace"]
 
 roles = [
     "DPS", "Support ATQ", "Tank", "Sustain",
@@ -305,7 +307,7 @@ roles = [
 specialisations = [
     "Compétence", "ATQ Normale", "Ultime", "Aiguisage",
     "Invocation", "Bouclier", "Surcharge", "Combo",
-    "Amplification"
+    "Amplification", "ATQ de Suivi"
 ]
 
 story_why = [
@@ -347,14 +349,15 @@ story_bonus = [
 quest_cards = {
     "principale": {
         "Conflit central": [
-            "Une guerre entre deux royaumes",
-            "Un démon scellé se réveille",
-            "Une prophétie annonce la fin du monde"
+            "Guerre",
+            "Démon",
+            "Vengeance",
+            "Tueur"
         ],
         "Ennemi majeur": [
-            "Un roi corrompu",
-            "Un dragon ancestral",
-            "Un général renégat"
+            "Gobelin",
+            "Roi",
+            "Âme Corrompu"
         ],
         "Motivation du héros": [
             "Sauver un proche",
