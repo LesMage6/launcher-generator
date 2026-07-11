@@ -1,26 +1,67 @@
 import random
 import json
-import requests
 import os
 import sys
 import requests
 import platform
 import psutil
 
-VERSION = "1.0.6"
+
+VERSION = "1.1"
 GITHUB_RAW_URL = "https://raw.githubusercontent.com/LesMage6/launcher-generator/refs/heads/main/g%C3%A9n%C3%A9rateur%20de%20nom1.0.py"
-NOTE_DE_MISE_Â_JOUR = "Ajout d'une interface visuel."
+NOTE_DE_MISE_À_JOUR = "Ajout d'une interface visuel."
 REQ_URL = "https://raw.githubusercontent.com/LesMage6/launcher-generator/refs/heads/main/requirements.json"
+# pygame print
+import pygame
+
+def play_sound(path):
+    try:
+        pygame.mixer.init()
+        pygame.mixer.Sound(path).play()
+    except Exception as e:
+        print("Erreur audio :", e)
+
+from datetime import datetime
+
+HISTORY_FILE = "data/history.json"
+LANG_FILE = "data/languages.json"
+
+def add_history(note, version):
+    try:
+        with open(HISTORY_FILE, "r", encoding="utf-8") as f:
+            data = json.load(f)
+
+        entry = {
+            "note": note,
+            "version": version,
+            "date": datetime.now().strftime("%Y-%m-%d %H:%M")
+        }
+# pygame
+        data["history"].append(entry)
+
+        with open(HISTORY_FILE, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=4, ensure_ascii=False)
+
+    except Exception as e:
+        print("Erreur historique :", e)
 
 def check_system_requirements():
     try:
         print("→ Vérification du matériel...")
-        data = requests.get(REQ_URL).json()
+
+        # Vérification Internet
+        try:
+            data = requests.get(REQ_URL).json()
+        except:
+            print("⚠️ Impossible de vérifier les exigences : pas de connexion Internet.")
+            play_sound("data/sounds/alert.wav")
+            return
 
         # Infos système
         ram_mb = psutil.virtual_memory().total // (1024 * 1024)
         cpu_ghz = psutil.cpu_freq().current / 1000
         python_ver = platform.python_version()
+        os_name = platform.system()
 
         min_req = data["minimum"]
         rec_req = data["recommended"]
@@ -28,22 +69,53 @@ def check_system_requirements():
         print(f"RAM détectée : {ram_mb} MB")
         print(f"CPU détecté : {cpu_ghz:.2f} GHz")
         print(f"Python détecté : {python_ver}")
+        print(f"OS détecté : {os_name}")
 
-        # Vérification minimum
-        if ram_mb < min_req["ram_mb"] or cpu_ghz < min_req["cpu_ghz"]:
-            print("⚠️ Votre appareil ne respecte PAS les exigences minimales.")
+        # Vérification OS
+        if os_name not in min_req["os"]:
+            print(f"⚠️ OS non supporté ({os_name}).")
+            play_sound("data/sounds/alert.wav")
+            return
+
+        # Vérification version Python
+        if python_ver < min_req["python_version"]:
+            print("⚠️ Version Python trop ancienne.")
+            play_sound("data/sounds/alert.wav")
+            return
+
+        # Vérification modules
+        for module in min_req["modules"]:
+            try:
+                __import__(module.replace("-", "_"))
+            except ImportError:
+                print(f"⚠️ Module manquant : {module}")
+                play_sound("data/sounds/alert.wav")
+                return
+
+        # Vérification RAM minimale
+        if ram_mb < min_req["ram_mb"]:
+            print("⚠️ RAM insuffisante pour lancer le programme.")
+            play_sound("data/sounds/alert.wav")
+            return
+
+        # Vérification CPU minimale
+        if cpu_ghz < min_req["cpu_ghz"]:
+            print("⚠️ CPU insuffisant pour lancer le programme.")
+            play_sound("data/sounds/alert.wav")
             return
 
         # Vérification recommandée
         if ram_mb < rec_req["ram_mb"] or cpu_ghz < rec_req["cpu_ghz"]:
             print("⚠️ Votre appareil fonctionne, mais n’atteint pas les performances recommandées.")
             print("→ Le programme peut être plus lent.")
+            play_sound("data/sounds/warning.wav")
         else:
             print("✔️ Votre appareil respecte les performances recommandées.")
+            play_sound("data/sounds/success.wav")
 
     except Exception as e:
         print("Erreur lors de la vérification du matériel :", e)
-
+        play_sound("data/sounds/alert.wav")
 
 def check_update():
     try:
@@ -69,14 +141,18 @@ def check_update():
 
 def update_program(new_code):
     print("→ Mise à jour en cours...")
+    add_history(NOTE_DE_MISE_À_JOUR, VERSION)
     filename = sys.argv[0]
-    print(f"note : {NOTE_DE_MISE_Â_JOUR}")
+    print(f"note : {NOTE_DE_MISE_À_JOUR}")
+    pygame("data/sounds/success.mp3")
 
     with open(filename, "w", encoding="utf-8") as f:
         f.write(new_code)
 
     print("→ Mise à jour terminée ! Redémarrage...")
     os.execv(sys.executable, ["python"] + sys.argv)
+
+
 # DONNÉES DES NOMS
 
 names = {
