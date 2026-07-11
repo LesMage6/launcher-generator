@@ -30,8 +30,8 @@
         ],
         "os": [
             "Windows",
-            "Linux (kernel 5+)",
-            "MacOS 12+"
+            "Linux",
+            "MacOS"
         ]
     }
 }
