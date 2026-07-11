@@ -4,8 +4,9 @@ import requests
 import os
 import sys
 
-VERSION = "1.0.3"
+VERSION = "1.0.3.1"
 GITHUB_RAW_URL = "https://raw.githubusercontent.com/LesMage6/launcher-generator/refs/heads/main/g%C3%A9n%C3%A9rateur%20de%20nom1.0.py"
+NOTE_DE_MISE_Â_JOUR = "Optimisation du programme"
 
 def check_update():
     try:
@@ -32,17 +33,14 @@ def check_update():
 def update_program(new_code):
     print("→ Mise à jour en cours...")
     filename = sys.argv[0]
+    print(f"note : {NOTE_DE_MISE_Â_JOUR}")
 
     with open(filename, "w", encoding="utf-8") as f:
         f.write(new_code)
 
     print("→ Mise à jour terminée ! Redémarrage...")
     os.execv(sys.executable, ["python"] + sys.argv)
-
-
-# ============================
-#   BASE DE DONNÉES DES NOMS
-# ============================
+# DONNÉES DES NOMS
 
 names = {
     "fr": {
@@ -291,23 +289,16 @@ names = {
 
 default_origins = ["fr", "en", "jp", "ch", "russe", "grec"]
 
-# ============================
-#   LISTES POUR IDEA6
-# ============================
+# IDEA6
 
 elements = ["Vent", "Lumière", "Roche", "Feu", "Foudre", "Eau", "Ombre", "Plante", "Glace"]
 
 roles = [
-    "DPS", "Support ATQ", "Tank", "Sustain",
-    "Support Universel", "Contrôleur",
-    "Invocateur", "Debuff", "DPS DoT",
-    "DPS Crit"
+    "DPS", "Support ATQ", "Tank", "Sustain", "Support Universel", "Contrôleur", "Invocateur", "Debuff", "DPS DoT", "DPS Crit"
 ]
 
 specialisations = [
-    "Compétence", "ATQ Normale", "Ultime", "Aiguisage",
-    "Invocation", "Bouclier", "Surcharge", "Combo",
-    "Amplification", "ATQ de Suivi"
+    "Compétence", "ATQ Normale", "Ultime", "Aiguisage", "Invocation", "Bouclier", "Surcharge", "Combo", "Amplification", "ATQ de Suivi"
 ]
 
 story_why = [
@@ -342,9 +333,7 @@ story_bonus = [
     "Un choix moral difficile modifie l’histoire."
 ]
 
-# ============================
-#   CARTES POUR LES QUÊTES
-# ============================
+# QUÊTES
 
 quest_cards = {
     "principale": {
@@ -448,9 +437,7 @@ quest_cards = {
     }
 }
 
-# ============================
-#   CARTES POUR LES FACTIONS
-# ============================
+#  FACTIONS
 
 faction_cards = {
     "Type": ["Empire", "Guilde", "Secte", "Tribu", "Ordre", "Clan"],
@@ -461,9 +448,7 @@ faction_cards = {
     "Objectif": ["Dominer le monde", "Protéger un secret", "Ressusciter un dieu", "Déclencher une révolution"]
 }
 
-# ============================
 #   FONCTIONS
-# ============================
 
 def generate_name(gender, origin=None):
     gender = gender.upper()
@@ -550,11 +535,10 @@ check_update()
 # ============================
 
 print("=== IA Génératrice de Noms, Personnages, Quêtes & Factions ===")
-print("Commandes : help, start, idea6, fullidea, ideaQ, ideaF, addname, origins, randomset, export\n")
-print("Tapez quit pour quittez ou verifie pour vérifier les mises à jour")
+print("Pour voir la liste des commandes, tapez help\n")
 
 while True:
-    cmd = input("> ").strip().split()
+    cmd = input(">> ").strip().split()
 
     if not cmd:
         continue
@@ -580,11 +564,12 @@ Commandes disponibles :
 """)
 
     elif action == "info_app":
-        print("""
+        print(f"""
    1. Information Générale :
      Nom du programme : Générateur de Nom
      Version Générale du Programme : 1.0
-     Version Exacte du Programme : 1.0.3
+     Version Exacte du Programme : {VERSION}
+     Note de Mise à jour : {NOTE_DE_MISE_Â_JOUR}
    2. Information des mises à jour :
      Le programme est directement connecté à un Repo GitHub pour mettre à jour le programme.
      Ces mises à jour change donc le code du Programme
@@ -599,9 +584,9 @@ Commandes disponibles :
 
 
     elif action in ["quit", "exit", "q"]:
-        confirm = input("Voulez-vous vraiment quitter ? (o/n)").lower()
-        if confirm == "o":
-            print("Fermeture du programme...")
+        confirm = input("Voulez-vous vraiment quitter ? (y/n)").lower()
+        if confirm == "y":
+            print("Fermeture...")
             break
         else:
             print("Annulé.")
