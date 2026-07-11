@@ -4,7 +4,7 @@ import requests
 import os
 import sys
 
-VERSION = "1.0.2"
+VERSION = "1.0.3"
 GITHUB_RAW_URL = "https://raw.githubusercontent.com/LesMage6/launcher-generator/refs/heads/main/g%C3%A9n%C3%A9rateur%20de%20nom1.0.py"
 
 def check_update():
@@ -551,6 +551,7 @@ check_update()
 
 print("=== IA Génératrice de Noms, Personnages, Quêtes & Factions ===")
 print("Commandes : help, start, idea6, fullidea, ideaQ, ideaF, addname, origins, randomset, export\n")
+print("Tapez quit pour quittez ou verifie pour vérifier les mises à jour")
 
 while True:
     cmd = input("> ").strip().split()
@@ -573,8 +574,41 @@ Commandes disponibles :
   origins                      → Liste les origines et nombres de noms
   randomset nombre             → Génère plusieurs personnages
   export [M/F] {origine}       → Export JSON d'un personnage
+  quit                         → Quitte le programme
+  verifie                      → Vérifie les mises à jour
+  info_app                     → Donne les information de l'application
 """)
 
+    elif action == "info_app":
+        print("""
+   1. Information Générale :
+     Nom du programme : Générateur de Nom
+     Version Générale du Programme : 1.0
+     Version Exacte du Programme : 1.0.3
+   2. Information des mises à jour :
+     Le programme est directement connecté à un Repo GitHub pour mettre à jour le programme.
+     Ces mises à jour change donc le code du Programme
+   3. Autres Information :
+     Ce Programme n'utilise pas d'IA, mais, seulement du Hasard
+     Il est totalement gratuit et libre d'accès
+   4. Informations sur la création de version cracké
+     Il est autorisé de créer des version cracké de ce programme pour diverses raisons.
+     Attention : Les mise à jour modifie totalement le code.
+     Les version cracké peut être transformé en version normal si le lien vers le GitHub n'est pas changé ou que la définition de mises à jour n'est pas modifier.
+""")
+
+
+    elif action in ["quit", "exit", "q"]:
+        confirm = input("Voulez-vous vraiment quitter ? (o/n)").lower()
+        if confirm == "o":
+            print("Fermeture du programme...")
+            break
+        else:
+            print("Annulé.")
+            
+    elif action == "verifie":
+        check_update()
+            
     # START
     elif action == "start":
         if len(cmd) == 2:
