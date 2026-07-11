@@ -7,7 +7,7 @@
         "modules": [
             "requests",
             "psutil",
-            "pygame-ce",
+            "pygame",
             "tkinter"
         ],
         "os": [
@@ -25,7 +25,7 @@
         "modules": [
             "requests",
             "psutil",
-            "pygame-ce",
+            "pygame",
             "tkinter"
         ],
         "os": [
