@@ -1,7 +1,7 @@
 {
     "minimum": {
-        "ram_mb": 256,
-        "cpu_ghz": 0.8,
+        "ram_mb": 128,
+        "cpu_ghz": 0.4,
         "python_version": "3.14",
         "internet_required": true,
         "modules": [
@@ -21,7 +21,7 @@
 
     "recommended": {
         "ram_mb": 512,
-        "cpu_ghz": 1.4,
+        "cpu_ghz": 0.8,
         "python_version": "3.14",
         "internet_required": true,
         "modules": [
