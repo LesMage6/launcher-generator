@@ -13,7 +13,9 @@
         "os": [
             "Windows",
             "Linux",
-            "MacOS"
+            "MacOS",
+            "ReactOS",
+            "SteamOS"
         ]
     },
 
@@ -31,7 +33,9 @@
         "os": [
             "Windows",
             "Linux",
-            "MacOS"
+            "MacOS",
+            "ReactOS",
+            "SteamOS"
         ]
     }
 }
