@@ -7,9 +7,9 @@ import platform
 import psutil
 
 
-VERSION = "1.1"
+VERSION = "1.1.1"
 GITHUB_RAW_URL = "https://raw.githubusercontent.com/LesMage6/launcher-generator/refs/heads/main/g%C3%A9n%C3%A9rateur%20de%20nom1.0.py"
-NOTE_DE_MISE_À_JOUR = "Ajout d'une interface visuel."
+NOTE_DE_MISE_À_JOUR = "Ajout de nouveaux nom dans Autre."
 REQ_URL = "https://raw.githubusercontent.com/LesMage6/launcher-generator/refs/heads/main/requirements.json"
 # pygame print
 import pygame
@@ -397,6 +397,10 @@ names = {
     "irlandais": {
         "M": ["Sean", "Connor", "Liam", "Patrick", "Declan", "Finn", "Aidan", "Ronan", "Cillian", "Brendan"],
         "F": ["Siobhan", "Aoife", "Niamh", "Maeve", "Fiona", "Eileen", "Orla", "Brigid", "Keira", "Roisin"]
+    },
+    "Inconnu": {
+        "M": ["Kazuah", "Diluc", "Dan Heng"],
+        "F": ["Sparkle", "Sparxie", "Kokomi"]
     }
 }
 
