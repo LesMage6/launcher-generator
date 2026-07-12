@@ -16,7 +16,7 @@ def path(rel):
 LOCAL_NAMES = path("data/names_local.json")
 CACHE_NAMES = path("data/names_cache.json")
 GITHUB_NAMES_URL = "https://raw.githubusercontent.com/LesMage6/launcher-generator/refs/heads/main/names.json"
-VERSION = "1.1.4"
+VERSION = "1.1.5"
 GITHUB_RAW_URL = "https://raw.githubusercontent.com/LesMage6/launcher-generator/refs/heads/main/générateur de nom1.0.py"
 NOTE_DE_MISE_À_JOUR = "Optimisation du programme"
 REQ_URL = "https://raw.githubusercontent.com/LesMage6/launcher-generator/refs/heads/main/requirements.json"
