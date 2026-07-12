@@ -22,41 +22,41 @@ NOTE_DE_MISE_À_JOUR = "Optimisation du programme"
 REQ_URL = "https://raw.githubusercontent.com/LesMage6/launcher-generator/refs/heads/main/requirements.json"
 
 def load_names():
-    # 2. Essayer de charger le cache GitHub
+    # 1. Essayer GitHub en premier
+    try:
+        print("→ Tentative de chargement depuis GitHub...")
+        data = requests.get(GITHUB_NAMES_URL, timeout=5).json()
+
+        # Mettre à jour le cache
+        with open(CACHE_NAMES, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=4, ensure_ascii=False)
+
+        print("✔ Base GitHub chargée.")
+        return data
+
+    except Exception:
+        print("⚠ Impossible de charger GitHub.")
+
+    # 2. Essayer le cache si GitHub est indisponible
     if os.path.exists(CACHE_NAMES):
         try:
             with open(CACHE_NAMES, "r", encoding="utf-8") as f:
                 cache_data = json.load(f)
             print("✔ Cache chargé.")
             return cache_data
-        except:
-            print("⚠️ Cache corrompu, suppression…")
+        except Exception:
+            print("⚠ Cache corrompu → suppression.")
             os.remove(CACHE_NAMES)
 
-    # 3. Essayer de télécharger la base complète depuis GitHub
+    # 3. Dernier recours : noms locaux
     try:
-        print("→ Téléchargement de la base de noms depuis GitHub…")
-        data = requests.get(GITHUB_NAMES_URL, timeout=5).json()
-
-        # Sauvegarde du cache
-        with open(CACHE_NAMES, "w", encoding="utf-8") as f:
-            json.dump(data, f, indent=4, ensure_ascii=False)
-
-        print("✔ Cache mis à jour.")
-        return data
-
-    except:
-        print("⚠️ Hors-ligne → utilisation des noms locaux.")
-        # Supprimer le cache si Internet est indisponible
-        if os.path.exists(CACHE_NAMES):
-            os.remove(CACHE_NAMES)
-            try:
-                with open(LOCAL_NAMES, "r", encoding="utf-8") as f:
-                local_data = json.load(f)
-            except:
-                print("⚠️ Impossible de charger les noms locaux.")
-                return {}
-                return local_data
+        with open(LOCAL_NAMES, "r", encoding="utf-8") as f:
+            local_data = json.load(f)
+        print("✔ Mode hors-ligne : noms locaux chargés.")
+        return local_data
+    except Exception:
+        print("❌ Impossible de charger les noms locaux.")
+        return {}
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
