@@ -5,38 +5,60 @@ import sys
 import requests
 import platform
 import psutil
+import pygame  # pygame-ce fonctionne sous le nom pygame
+from datetime import datetime
 
+# === Chemins absolus ===
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-VERSION = "1.1.1"
-GITHUB_RAW_URL = "https://raw.githubusercontent.com/LesMage6/launcher-generator/refs/heads/main/g%C3%A9n%C3%A9rateur%20de%20nom1.0.py"
-NOTE_DE_MISE_À_JOUR = "Ajout de nouveaux nom dans Autre."
+def path(rel):
+    return os.path.join(BASE_DIR, rel)
+
+# === Version / URLs ===
+VERSION = "1.1"
+GITHUB_RAW_URL = "https://raw.githubusercontent.com/LesMage6/launcher-generator/refs/heads/main/générateur de nom1.0.py"
+NOTE_DE_MISE_À_JOUR = "Ajout d'une interface visuel."
 REQ_URL = "https://raw.githubusercontent.com/LesMage6/launcher-generator/refs/heads/main/requirements.json"
-# pygame print
-import pygame
 
-def play_sound(path):
+# === Fichiers data ===
+HISTORY_FILE = path("data/history.json")
+LANG_FILE = path("data/languages.json")
+
+# === Charger les langues ===
+try:
+    with open(LANG_FILE, "r", encoding="utf-8") as f:
+        LANG = json.load(f)
+except FileNotFoundError:
+    print("⚠️ Fichier languages.json introuvable.")
+    LANG = {"fr": {}}
+
+current_lang = "fr"
+
+# === Audio ===
+def play_sound(sound_path):
     try:
         pygame.mixer.init()
-        pygame.mixer.Sound(path).play()
+        pygame.mixer.Sound(path(sound_path)).play()
     except Exception as e:
         print("Erreur audio :", e)
 
-from datetime import datetime
-
-HISTORY_FILE = "data/history.json"
-LANG_FILE = "data/languages.json"
-
+# === Historique ===
 def add_history(note, version):
     try:
+        if not os.path.exists(HISTORY_FILE):
+            with open(HISTORY_FILE, "w", encoding="utf-8") as f:
+                json.dump({"history": []}, f, indent=4)
+
         with open(HISTORY_FILE, "r", encoding="utf-8") as f:
             data = json.load(f)
 
         entry = {
             "note": note,
             "version": version,
-            "date": datetime.now().strftime("%Y-%m-%d %H:%M")
+            "date": datetime.now().strftime("%Y-%m-%d %H:%M"),
+            "language": current_lang
         }
-# pygame
+
         data["history"].append(entry)
 
         with open(HISTORY_FILE, "w", encoding="utf-8") as f:
@@ -45,6 +67,7 @@ def add_history(note, version):
     except Exception as e:
         print("Erreur historique :", e)
 
+# === Vérification matériel ===
 def check_system_requirements():
     try:
         print("→ Vérification du matériel...")
@@ -77,7 +100,7 @@ def check_system_requirements():
             play_sound("data/sounds/alert.wav")
             return
 
-        # Vérification version Python
+        # Vérification Python
         if python_ver < min_req["python_version"]:
             print("⚠️ Version Python trop ancienne.")
             play_sound("data/sounds/alert.wav")
@@ -86,7 +109,7 @@ def check_system_requirements():
         # Vérification modules
         for module in min_req["modules"]:
             try:
-                __import__(module.replace("-", "_"))
+                __import__(module)
             except ImportError:
                 print(f"⚠️ Module manquant : {module}")
                 play_sound("data/sounds/alert.wav")
@@ -94,20 +117,19 @@ def check_system_requirements():
 
         # Vérification RAM minimale
         if ram_mb < min_req["ram_mb"]:
-            print("⚠️ RAM insuffisante pour lancer le programme.")
+            print("⚠️ RAM insuffisante.")
             play_sound("data/sounds/alert.wav")
             return
 
         # Vérification CPU minimale
         if cpu_ghz < min_req["cpu_ghz"]:
-            print("⚠️ CPU insuffisant pour lancer le programme.")
+            print("⚠️ CPU insuffisant.")
             play_sound("data/sounds/alert.wav")
             return
 
         # Vérification recommandée
         if ram_mb < rec_req["ram_mb"] or cpu_ghz < rec_req["cpu_ghz"]:
-            print("⚠️ Votre appareil fonctionne, mais n’atteint pas les performances recommandées.")
-            print("→ Le programme peut être plus lent.")
+            print("⚠️ Performances inférieures aux recommandations.")
             play_sound("data/sounds/warning.wav")
         else:
             print("✔️ Votre appareil respecte les performances recommandées.")
@@ -117,12 +139,12 @@ def check_system_requirements():
         print("Erreur lors de la vérification du matériel :", e)
         play_sound("data/sounds/alert.wav")
 
+# === Vérification mise à jour ===
 def check_update():
     try:
         print("→ Vérification des mises à jour...")
         remote_code = requests.get(GITHUB_RAW_URL).text
 
-        # Vérifie la version distante
         for line in remote_code.splitlines():
             if line.startswith("VERSION"):
                 remote_version = line.split("=")[1].strip().replace('"', '')
@@ -139,19 +161,19 @@ def check_update():
     except Exception as e:
         print("Erreur lors de la vérification :", e)
 
+# === Mise à jour ===
 def update_program(new_code):
     print("→ Mise à jour en cours...")
     add_history(NOTE_DE_MISE_À_JOUR, VERSION)
     filename = sys.argv[0]
     print(f"note : {NOTE_DE_MISE_À_JOUR}")
-    pygame("data/sounds/success.mp3")
+    play_sound("data/sounds/success.wav")
 
     with open(filename, "w", encoding="utf-8") as f:
         f.write(new_code)
 
     print("→ Mise à jour terminée ! Redémarrage...")
     os.execv(sys.executable, ["python"] + sys.argv)
-
 
 # DONNÉES DES NOMS
 
@@ -565,95 +587,9 @@ faction_cards = {
     "Objectif": ["Dominer le monde", "Protéger un secret", "Ressusciter un dieu", "Déclencher une révolution"]
 }
 
-#   FONCTIONS
-
-def generate_name(gender, origin=None):
-    gender = gender.upper()
-    if gender not in ["M", "F"]:
-        return "Erreur : genre invalide (M ou F)."
-
-    if origin is None:
-        origin = random.choice(default_origins)
-
-    origin = origin.lower()
-    if origin not in names:
-        return f"Erreur : origine inconnue ({origin})."
-
-    return random.choice(names[origin][gender])
-
-
-def generate_idea6(gender, origin=None):
-    name = generate_name(gender, origin)
-    element = random.choice(elements)
-    role = random.choice(roles)
-    spec = random.choice(specialisations)
-
-    story = {
-        "Pourquoi/Comment": random.choice(story_why),
-        "Élément perturbateur": random.choice(story_trigger),
-        "Ending": random.choice(story_end),
-        "Bonus": random.choice(story_bonus)
-    }
-
-    return {
-        "Nom": name,
-        "Élément": element,
-        "Rôle": role,
-        "Spécialisation": spec,
-        "Histoire": story
-    }
-
-
-def generate_fullidea(gender, origin=None):
-    base = generate_idea6(gender, origin)
-
-    rareté = random.choice(["SSR", "SR", "R"])
-    stats = {
-        "ATQ": random.randint(80, 300),
-        "DEF": random.randint(50, 200),
-        "PV": random.randint(500, 2000)
-    }
-    compétence = f"Technique spéciale basée sur {base['Élément']}."
-
-    base["Rareté"] = rareté
-    base["Stats"] = stats
-    base["Compétence"] = compétence
-    base["Intro"] = f"{base['Nom']} maîtrise la puissance de {base['Élément']}."
-
-    return base
-
-
-def generate_quest(qtype):
-    qtype = qtype.lower()
-    if qtype not in quest_cards:
-        return "Types valides : principale / secondaire / compagnon"
-
-    result = {}
-    for category, options in quest_cards[qtype].items():
-        result[category] = random.choice(options)
-
-    return result
-
-
-def generate_faction():
-    return {
-        "Type": random.choice(faction_cards["Type"]),
-        "Alignement": random.choice(faction_cards["Alignement"]),
-        "Ressource": random.choice(faction_cards["Ressource"]),
-        "Faiblesse": random.choice(faction_cards["Faiblesse"]),
-        "Ennemi juré": random.choice(faction_cards["Ennemi juré"]),
-        "Objectif": random.choice(faction_cards["Objectif"])
-    }
-
-check_system_requirements()
-check_update()
-
-#   Tkinter
-
+# === Tkinter ===
 import tkinter as tk
 from tkinter import ttk, messagebox
-
-# Interface Tkinter
 
 def afficher(texte):
     output.delete("1.0", tk.END)
@@ -697,17 +633,12 @@ def ui_quit():
     root.destroy()
 
 # === Fenêtre ===
-
 root = tk.Tk()
 root.title(f"Générateur de Nom v{VERSION}")
 root.geometry("900x600")
 
-# === Zone d'affichage ===
-
 output = tk.Text(root, height=25, width=80, font=("Consolas", 11))
 output.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True)
-
-# === Menu ===
 
 menu = tk.Frame(root)
 menu.pack(side=tk.LEFT, fill=tk.Y)
@@ -723,8 +654,6 @@ ttk.Combobox(menu, textvariable=origin_var, values=list(names.keys())).pack()
 tk.Label(menu, text="Type de quête :", font=("Arial", 12)).pack()
 quest_var = tk.StringVar(value="principale")
 ttk.Combobox(menu, textvariable=quest_var, values=["principale", "secondaire", "compagnon"]).pack()
-
-# === Boutons ===
 
 tk.Button(menu, text="Générer un nom", command=ui_start).pack(fill=tk.X)
 tk.Button(menu, text="Personnage simple", command=ui_idea6).pack(fill=tk.X)
