@@ -20,8 +20,8 @@
     },
 
     "recommended": {
-        "ram_mb": 1024,
-        "cpu_ghz": 1.6,
+        "ram_mb": 512,
+        "cpu_ghz": 1.4,
         "python_version": "3.14",
         "internet_required": true,
         "modules": [
