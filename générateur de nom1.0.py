@@ -16,10 +16,11 @@ def path(rel):
 LOCAL_NAMES = path("data/names_local.json")
 CACHE_NAMES = path("data/names_cache.json")
 GITHUB_NAMES_URL = "https://raw.githubusercontent.com/LesMage6/launcher-generator/main/names.json"
-VERSION = "1.1.6"
+VERSION = "1.1.7"
 GITHUB_RAW_URL = "https://raw.githubusercontent.com/LesMage6/launcher-generator/refs/heads/main/générateur de nom1.0.py"
 NOTE_DE_MISE_À_JOUR = "Optimisation du programme"
 REQ_URL = "https://raw.githubusercontent.com/LesMage6/launcher-generator/refs/heads/main/requirements.json"
+GITHUB_MD_URL = "https://raw.githubusercontent.com/LesMage6/launcher-generator/main/DETAILS.md"
 
 def load_names():
     # 1. Essayer GitHub en premier
@@ -200,6 +201,32 @@ def update_program(new_code):
         f.write(new_code)
     print("→ Mise à jour terminée ! Redémarrage...")
     os.execv(sys.executable, ["python"] + sys.argv)
+
+def open_markdown_info():
+    import tkinter as tk
+    from tkinter import messagebox
+
+    try:
+        response = requests.get(GITHUB_MD_URL, timeout=5)
+
+        if response.status_code != 200:
+            messagebox.showerror("Erreur", f"Impossible de charger le fichier .md (code {response.status_code}).")
+            return
+
+        md_text = response.text
+
+        # Fenêtre dédiée
+        md_window = tk.Toplevel(root)
+        md_window.title("Informations & Mises à jour")
+        md_window.geometry("800x600")
+
+        text_area = tk.Text(md_window, wrap="word", font=("Consolas", 11))
+        text_area.pack(fill=tk.BOTH, expand=True)
+
+        text_area.insert(tk.END, md_text)
+
+    except Exception as e:
+        messagebox.showerror("Erreur", f"Impossible de charger le fichier .md.\n\nDétails : {e}")
 
 # DONNÉES DES NOMS
 
@@ -502,6 +529,7 @@ tk.Button(menu, text="Personnage simple", command=ui_idea6).pack(fill=tk.X)
 tk.Button(menu, text="Personnage avancé", command=ui_fullidea).pack(fill=tk.X)
 tk.Button(menu, text="Quête", command=ui_quest).pack(fill=tk.X)
 tk.Button(menu, text="Faction", command=ui_faction).pack(fill=tk.X)
+tk.Button(menu, text="Infos & Mises à jour", command=open_markdown_info).pack(fill=tk.X)
 tk.Button(menu, text="Vérifier mise à jour", command=ui_update).pack(fill=tk.X)
 tk.Button(menu, text="Vérifier matériel", command=ui_requirements).pack(fill=tk.X)
 tk.Button(menu, text="Quitter", command=ui_quit).pack(fill=tk.X)
