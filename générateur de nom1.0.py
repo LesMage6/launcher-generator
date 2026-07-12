@@ -15,9 +15,9 @@ def path(rel):
     return os.path.join(BASE_DIR, rel)
 
 # === Version / URLs ===
-VERSION = "1.1"
+VERSION = "1.1.1"
 GITHUB_RAW_URL = "https://raw.githubusercontent.com/LesMage6/launcher-generator/refs/heads/main/générateur de nom1.0.py"
-NOTE_DE_MISE_À_JOUR = "Ajout d'une interface visuel."
+NOTE_DE_MISE_À_JOUR = "Ajout de nouveau nom dans Inconnu."
 REQ_URL = "https://raw.githubusercontent.com/LesMage6/launcher-generator/refs/heads/main/requirements.json"
 
 # === Fichiers data ===
@@ -586,6 +586,170 @@ faction_cards = {
     "Ennemi juré": ["Un empire voisin", "Une créature mythique", "Une faction rivale", "Un héros légendaire"],
     "Objectif": ["Dominer le monde", "Protéger un secret", "Ressusciter un dieu", "Déclencher une révolution"]
 }
+
+#   FONCTIONS
+
+
+
+def generate_name(gender, origin=None):
+
+    gender = gender.upper()
+
+    if gender not in ["M", "F"]:
+
+        return "Erreur : genre invalide (M ou F)."
+
+
+
+    if origin is None:
+
+        origin = random.choice(default_origins)
+
+
+
+    origin = origin.lower()
+
+    if origin not in names:
+
+        return f"Erreur : origine inconnue ({origin})."
+
+
+
+    return random.choice(names[origin][gender])
+
+
+
+
+
+def generate_idea6(gender, origin=None):
+
+    name = generate_name(gender, origin)
+
+    element = random.choice(elements)
+
+    role = random.choice(roles)
+
+    spec = random.choice(specialisations)
+
+
+
+    story = {
+
+        "Pourquoi/Comment": random.choice(story_why),
+
+        "Élément perturbateur": random.choice(story_trigger),
+
+        "Ending": random.choice(story_end),
+
+        "Bonus": random.choice(story_bonus)
+
+    }
+
+
+
+    return {
+
+        "Nom": name,
+
+        "Élément": element,
+
+        "Rôle": role,
+
+        "Spécialisation": spec,
+
+        "Histoire": story
+
+    }
+
+
+
+
+
+def generate_fullidea(gender, origin=None):
+
+    base = generate_idea6(gender, origin)
+
+
+
+    rareté = random.choice(["SSR", "SR", "R"])
+
+    stats = {
+
+        "ATQ": random.randint(80, 300),
+
+        "DEF": random.randint(50, 200),
+
+        "PV": random.randint(500, 2000)
+
+    }
+
+    compétence = f"Technique spéciale basée sur {base['Élément']}."
+
+
+
+    base["Rareté"] = rareté
+
+    base["Stats"] = stats
+
+    base["Compétence"] = compétence
+
+    base["Intro"] = f"{base['Nom']} maîtrise la puissance de {base['Élément']}."
+
+
+
+    return base
+
+
+
+
+
+def generate_quest(qtype):
+
+    qtype = qtype.lower()
+
+    if qtype not in quest_cards:
+
+        return "Types valides : principale / secondaire / compagnon"
+
+
+
+    result = {}
+
+    for category, options in quest_cards[qtype].items():
+
+        result[category] = random.choice(options)
+
+
+
+    return result
+
+
+
+
+
+def generate_faction():
+
+    return {
+
+        "Type": random.choice(faction_cards["Type"]),
+
+        "Alignement": random.choice(faction_cards["Alignement"]),
+
+        "Ressource": random.choice(faction_cards["Ressource"]),
+
+        "Faiblesse": random.choice(faction_cards["Faiblesse"]),
+
+        "Ennemi juré": random.choice(faction_cards["Ennemi juré"]),
+
+        "Objectif": random.choice(faction_cards["Objectif"])
+
+    }
+
+
+
+check_system_requirements()
+
+check_update()
 
 # === Tkinter ===
 import tkinter as tk
