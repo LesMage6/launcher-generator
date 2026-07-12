@@ -16,20 +16,12 @@ def path(rel):
 LOCAL_NAMES = path("data/names_local.json")
 CACHE_NAMES = path("data/names_cache.json")
 GITHUB_NAMES_URL = "https://raw.githubusercontent.com/LesMage6/launcher-generator/refs/heads/main/names.json"
-VERSION = "1.1.3"
+VERSION = "1.1.4"
 GITHUB_RAW_URL = "https://raw.githubusercontent.com/LesMage6/launcher-generator/refs/heads/main/générateur de nom1.0.py"
 NOTE_DE_MISE_À_JOUR = "Optimisation du programme"
 REQ_URL = "https://raw.githubusercontent.com/LesMage6/launcher-generator/refs/heads/main/requirements.json"
 
 def load_names():
-    # 1. Charger les langues locales (fr, en, jp)
-    try:
-        with open(LOCAL_NAMES, "r", encoding="utf-8") as f:
-            local_data = json.load(f)
-    except:
-        print("⚠️ Impossible de charger les noms locaux.")
-        return {}
-
     # 2. Essayer de charger le cache GitHub
     if os.path.exists(CACHE_NAMES):
         try:
@@ -58,7 +50,13 @@ def load_names():
         # Supprimer le cache si Internet est indisponible
         if os.path.exists(CACHE_NAMES):
             os.remove(CACHE_NAMES)
-        return local_data
+            try:
+                with open(LOCAL_NAMES, "r", encoding="utf-8") as f:
+                local_data = json.load(f)
+            except:
+                print("⚠️ Impossible de charger les noms locaux.")
+                return {}
+                return local_data
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
