@@ -5,26 +5,22 @@ import sys
 import requests
 import platform
 import psutil
-import pygame  # pygame-ce fonctionne sous le nom pygame
+import pygame 
 from datetime import datetime
 
-# === Chemins absolus ===
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 def path(rel):
     return os.path.join(BASE_DIR, rel)
 
-# === Version / URLs ===
-VERSION = "1.1.1"
+VERSION = "1.1.2"
 GITHUB_RAW_URL = "https://raw.githubusercontent.com/LesMage6/launcher-generator/refs/heads/main/générateur de nom1.0.py"
-NOTE_DE_MISE_À_JOUR = "Ajout de nouveau nom dans Inconnu."
+NOTE_DE_MISE_À_JOUR = "Optimisation du programme"
 REQ_URL = "https://raw.githubusercontent.com/LesMage6/launcher-generator/refs/heads/main/requirements.json"
 
-# === Fichiers data ===
 HISTORY_FILE = path("data/history.json")
 LANG_FILE = path("data/languages.json")
 
-# === Charger les langues ===
 try:
     with open(LANG_FILE, "r", encoding="utf-8") as f:
         LANG = json.load(f)
@@ -34,7 +30,6 @@ except FileNotFoundError:
 
 current_lang = "fr"
 
-# === Audio ===
 def play_sound(sound_path):
     try:
         pygame.mixer.init()
@@ -42,7 +37,6 @@ def play_sound(sound_path):
     except Exception as e:
         print("Erreur audio :", e)
 
-# === Historique ===
 def add_history(note, version):
     try:
         if not os.path.exists(HISTORY_FILE):
@@ -67,12 +61,10 @@ def add_history(note, version):
     except Exception as e:
         print("Erreur historique :", e)
 
-# === Vérification matériel ===
 def check_system_requirements():
     try:
         print("→ Vérification du matériel...")
 
-        # Vérification Internet
         try:
             data = requests.get(REQ_URL).json()
         except:
@@ -80,7 +72,6 @@ def check_system_requirements():
             play_sound("data/sounds/alert.wav")
             return
 
-        # Infos système
         ram_mb = psutil.virtual_memory().total // (1024 * 1024)
         cpu_ghz = psutil.cpu_freq().current / 1000
         python_ver = platform.python_version()
@@ -94,19 +85,16 @@ def check_system_requirements():
         print(f"Python détecté : {python_ver}")
         print(f"OS détecté : {os_name}")
 
-        # Vérification OS
         if os_name not in min_req["os"]:
             print(f"⚠️ OS non supporté ({os_name}).")
             play_sound("data/sounds/alert.wav")
             return
 
-        # Vérification Python
         if python_ver < min_req["python_version"]:
-            print("⚠️ Version Python trop ancienne.")
+            print("⚠️ Version Python trop ancienne. Veuillez installez au minimum Python 3.14 !")
             play_sound("data/sounds/alert.wav")
             return
 
-        # Vérification modules
         for module in min_req["modules"]:
             try:
                 __import__(module)
@@ -115,19 +103,16 @@ def check_system_requirements():
                 play_sound("data/sounds/alert.wav")
                 return
 
-        # Vérification RAM minimale
         if ram_mb < min_req["ram_mb"]:
             print("⚠️ RAM insuffisante.")
             play_sound("data/sounds/alert.wav")
             return
 
-        # Vérification CPU minimale
         if cpu_ghz < min_req["cpu_ghz"]:
             print("⚠️ CPU insuffisant.")
             play_sound("data/sounds/alert.wav")
             return
 
-        # Vérification recommandée
         if ram_mb < rec_req["ram_mb"] or cpu_ghz < rec_req["cpu_ghz"]:
             print("⚠️ Performances inférieures aux recommandations.")
             play_sound("data/sounds/warning.wav")
@@ -139,12 +124,11 @@ def check_system_requirements():
         print("Erreur lors de la vérification du matériel :", e)
         play_sound("data/sounds/alert.wav")
 
-# === Vérification mise à jour ===
+# Vérification mise à jour
 def check_update():
     try:
         print("→ Vérification des mises à jour...")
         remote_code = requests.get(GITHUB_RAW_URL).text
-
         for line in remote_code.splitlines():
             if line.startswith("VERSION"):
                 remote_version = line.split("=")[1].strip().replace('"', '')
@@ -152,7 +136,6 @@ def check_update():
         else:
             print("Impossible de trouver la version distante.")
             return
-
         if remote_version != VERSION:
             print(f"Nouvelle version trouvée : {remote_version} (local : {VERSION})")
             update_program(remote_code)
@@ -161,17 +144,15 @@ def check_update():
     except Exception as e:
         print("Erreur lors de la vérification :", e)
 
-# === Mise à jour ===
+# Mise à jour
 def update_program(new_code):
     print("→ Mise à jour en cours...")
     add_history(NOTE_DE_MISE_À_JOUR, VERSION)
     filename = sys.argv[0]
     print(f"note : {NOTE_DE_MISE_À_JOUR}")
     play_sound("data/sounds/success.wav")
-
     with open(filename, "w", encoding="utf-8") as f:
         f.write(new_code)
-
     print("→ Mise à jour terminée ! Redémarrage...")
     os.execv(sys.executable, ["python"] + sys.argv)
 
@@ -179,18 +160,8 @@ def update_program(new_code):
 
 names = {
     "fr": {
-        "M": [
-            "Louis", "Arthur", "Hugo", "Gabriel", "Théo", "Adrien", "Mathis", "Noah", "Evan", "Sébastien",
-            "Clément", "Raphaël", "Jules", "Maxime", "Valentin", "Antoine", "Baptiste", "Quentin", "Léo", "Timothée",
-            "Adrien", "Bastien", "Corentin", "Florian", "Gaëtan", "Jérémy", "Loïc", "Maël", "Romain", "Thibault",
-            "Alexis", "Alex", "Alexandre"
-        ],
-        "F": [
-            "Emma", "Louise", "Chloé", "Inès", "Camille", "Sarah", "Léna", "Manon", "Elena", "Alicia",
-            "Zoé", "Anaïs", "Lucie", "Maëlle", "Océane", "Juliette", "Margot", "Élise", "Nina", "Adèle",
-            "Amélie", "Clara", "Élodie", "Flavie", "Jade", "Laurie", "Mélissa", "Romane", "Solène", "Tessa",
-            "Julia"
-        ]
+        "M": [ "Louis", "Arthur", "Hugo", "Gabriel", "Théo", "Adrien", "Mathis", "Noah", "Evan", "Sébastien", "Clément", "Raphaël", "Jules", "Maxime", "Valentin", "Antoine", "Baptiste", "Quentin", "Léo", "Timothée", "Adrien", "Bastien", "Corentin", "Florian", "Gaëtan", "Jérémy", "Loïc", "Maël", "Romain", "Thibault", "Alexis", "Alex", "Alexandre"],
+        "F": [ "Emma", "Louise", "Chloé", "Inès", "Camille", "Sarah", "Léna", "Manon", "Elena", "Alicia", "Zoé", "Anaïs", "Lucie", "Maëlle", "Océane", "Juliette", "Margot", "Élise", "Nina", "Adèle", "Amélie", "Clara", "Élodie", "Flavie", "Jade", "Laurie", "Mélissa", "Romane", "Solène", "Tessa", "Julia"]
     },
 
     "en": {
@@ -431,15 +402,12 @@ default_origins = ["fr", "en", "jp", "ch", "russe", "grec"]
 # IDEA6
 
 elements = ["Vent", "Lumière", "Roche", "Feu", "Foudre", "Eau", "Ombre", "Plante", "Glace"]
-
 roles = [
     "DPS", "Support ATQ", "Tank", "Sustain", "Support Universel", "Contrôleur", "Invocateur", "Debuff", "DPS DoT", "DPS Crit"
 ]
-
 specialisations = [
     "Compétence", "ATQ Normale", "Ultime", "Aiguisage", "Invocation", "Bouclier", "Surcharge", "Combo", "Amplification", "ATQ de Suivi"
 ]
-
 story_why = [
     "Un événement tragique bouleverse sa vie.",
     "Il/Elle cherche à protéger quelqu’un de précieux.",
@@ -447,7 +415,6 @@ story_why = [
     "Il/Elle fuit une organisation qui veut l’utiliser.",
     "Son pouvoir s’est éveillé accidentellement."
 ]
-
 story_trigger = [
     "Une attaque inattendue déclenche l’aventure.",
     "Un proche meurt.",
@@ -455,7 +422,6 @@ story_trigger = [
     "Un allié trahit le groupe.",
     "Une guerre éclate."
 ]
-
 story_end = [
     "Good Ending",
     "Bad Ending",
@@ -463,7 +429,6 @@ story_end = [
     "Secret Ending",
     "Heroic Ending"
 ]
-
 story_bonus = [
     "Un souvenir d’enfance revient et change tout.",
     "Un personnage secondaire devient crucial.",
@@ -471,7 +436,6 @@ story_bonus = [
     "Une relation inattendue influence son destin.",
     "Un choix moral difficile modifie l’histoire."
 ]
-
 # QUÊTES
 
 quest_cards = {
@@ -480,34 +444,27 @@ quest_cards = {
             "Guerre",
             "Démon",
             "Vengeance",
-            "Tueur"
-        ],
+            "Tueur" ],
         "Ennemi majeur": [
             "Gobelin",
             "Roi",
-            "Âme Corrompu"
-        ],
+            "Âme Corrompu"],
         "Motivation du héros": [
             "Sauver un proche",
             "Empêcher une catastrophe",
-            "Venger son village"
-        ],
+            "Venger son village"],
         "Lieu clé": [
             "La Citadelle Noire",
             "Les Ruines Astrales",
-            "La Forêt des Murmures"
-        ],
+            "La Forêt des Murmures"],
         "Épreuve majeure": [
             "Affronter une armée entière",
             "Résoudre un puzzle ancien",
-            "Survivre à un piège mortel"
-        ],
+            "Survivre à un piège mortel"],
         "Récompense": [
             "Un artefact légendaire",
             "Un pouvoir scellé",
-            "Une vérité oubliée"
-        ]
-    },
+            "Une vérité oubliée"]},
 
     "secondaire": {
         "Problème local": [
@@ -588,167 +545,79 @@ faction_cards = {
 }
 
 #   FONCTIONS
-
-
-
 def generate_name(gender, origin=None):
-
     gender = gender.upper()
-
     if gender not in ["M", "F"]:
-
         return "Erreur : genre invalide (M ou F)."
 
-
-
     if origin is None:
-
         origin = random.choice(default_origins)
 
-
-
     origin = origin.lower()
-
     if origin not in names:
-
         return f"Erreur : origine inconnue ({origin})."
-
-
 
     return random.choice(names[origin][gender])
 
-
-
-
-
 def generate_idea6(gender, origin=None):
-
     name = generate_name(gender, origin)
-
     element = random.choice(elements)
-
     role = random.choice(roles)
-
     spec = random.choice(specialisations)
-
-
-
     story = {
-
         "Pourquoi/Comment": random.choice(story_why),
-
         "Élément perturbateur": random.choice(story_trigger),
-
         "Ending": random.choice(story_end),
-
         "Bonus": random.choice(story_bonus)
-
     }
-
-
-
     return {
-
         "Nom": name,
-
         "Élément": element,
-
         "Rôle": role,
-
         "Spécialisation": spec,
-
         "Histoire": story
-
     }
-
-
-
-
 
 def generate_fullidea(gender, origin=None):
-
     base = generate_idea6(gender, origin)
 
-
-
     rareté = random.choice(["SSR", "SR", "R"])
-
     stats = {
-
         "ATQ": random.randint(80, 300),
-
         "DEF": random.randint(50, 200),
-
         "PV": random.randint(500, 2000)
-
     }
-
     compétence = f"Technique spéciale basée sur {base['Élément']}."
 
-
-
     base["Rareté"] = rareté
-
     base["Stats"] = stats
-
     base["Compétence"] = compétence
-
     base["Intro"] = f"{base['Nom']} maîtrise la puissance de {base['Élément']}."
-
-
 
     return base
 
-
-
-
-
 def generate_quest(qtype):
-
     qtype = qtype.lower()
-
     if qtype not in quest_cards:
-
         return "Types valides : principale / secondaire / compagnon"
 
-
-
     result = {}
-
     for category, options in quest_cards[qtype].items():
-
         result[category] = random.choice(options)
-
-
 
     return result
 
-
-
-
-
 def generate_faction():
-
     return {
-
         "Type": random.choice(faction_cards["Type"]),
-
         "Alignement": random.choice(faction_cards["Alignement"]),
-
         "Ressource": random.choice(faction_cards["Ressource"]),
-
         "Faiblesse": random.choice(faction_cards["Faiblesse"]),
-
         "Ennemi juré": random.choice(faction_cards["Ennemi juré"]),
-
         "Objectif": random.choice(faction_cards["Objectif"])
-
     }
 
-
-
 check_system_requirements()
-
 check_update()
 
 # === Tkinter ===
