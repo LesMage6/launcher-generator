@@ -6,3 +6,6 @@ Voici les dernières annonces et mises à jour de l'application :
  - Ajoût de noms
  - Amélioration de l'interface
  - Ajout de paramètre utile
+ - Ajout du sexe : Chat et Non Binaire
+1.3 (bientôt)
+ - Ajout d'un fond d'écran.
