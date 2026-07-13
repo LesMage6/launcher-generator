@@ -1,6 +1,6 @@
 {
     "titre": "Mon Livre",
     "chapitres": [
-        { "id": 1, "nom": "Chapitre 1", "fichier": "https://raw.githubusercontent.com/LesMage6/launcher-generator/refs/heads/main/book/chapitre1.md" }
+        { "id": 1, "nom": "Chapitre 1", "fichier": "chapitre1.md" }
     ]
 }
