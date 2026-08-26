@@ -78,7 +78,7 @@ def ensure_structure():
             "checksum": ""
         },
         "userdata/info.json": {
-            "info": {VERSION},
+            "info": "LocaleB112",
             "alert": "Cube"
         }
     }
@@ -96,11 +96,18 @@ def ensure_structure():
             "jp": {"M": ["Haruto"], "F": ["Aiko"]}
         },
         "data/languages.json": {"": {}},
-        "data/history.json": {"history": []}
-    }
-    cache_files = {
+        "data/history.json": {"history": []
+        },
         "cache/images/easter_egg.json": {
             "link": "easter-egg.txt"
+        },
+        "cache/txt/cat_name.json": {
+            "name": {
+                "Hermione",
+                "Sushi",
+                "O'malley",
+                "Caramel"
+            }
         }
     }
 
@@ -686,9 +693,12 @@ def generate_name(gender, origin=None):
     if style == "fantasy":
         suffixes = user_tags["tags"].get("fantasy", ["dor", "wyn", "riel", "thor"])
         name += random.choice(suffixes)
-    elif style == "cyberpunk":
+    elif if style == "cyberpunk":
         suffixes = user_tags["tags"].get("cyberpunk", ["-X", "7", "99", "_SYS"])
         name = name.upper() + random.choice(suffixes)
+    elif style == "fantasy":
+        préfixe = user_tags["tags"].get("fantasy", ["Faie ", "Reine ", "Chevalier ", "Mademoiselle "])
+        name = random.choice(suffixes) + name.upper()
 
     length = length_var.get()
     if length == "court":
@@ -891,9 +901,9 @@ def ui_buy():
 
 root = tk.Tk()
 root.title(f"Générateur de Nom v{VERSION}")
-root.geometry("900x600")
+root.geometry("1000x700")
 
-output = tk.Text(root, height=25, width=80, font=("Consolas", 11))
+output = tk.Text(root, height=25, width=80, font=("Consolas", 12))
 output.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True)
 
 menu = tk.Frame(root)
@@ -904,34 +914,28 @@ menu.configure(bg="#252525")
 
 style_btn = {
     "bg": "#4e4e4e",
-    "fg": "white",
+    "fg": "black",
     "activebackground": "#5A5A5A",
-    "activeforeground": "white",
-    "font": ("Segoe UI", 11)
+    "activeforeground": "black",
+    "font": ("Segoe UI", 12)
 }
 ui_update_currency()
-
 
 tk.Label(menu, text="Pseudo :", font=("Arial", 12), bg="#252525", fg="white").pack()
 pseudo_var = tk.StringVar(value=user_settings.get("pseudo", "LM6"))
 tk.Entry(menu, textvariable=pseudo_var).pack(fill=tk.X)
-
 tk.Label(menu, text="Genre :", font=("Arial", 12), bg="#252525", fg="white").pack()
 gender_var = tk.StringVar(value=user_settings.get("default_gender", "M"))
 ttk.Combobox(menu, textvariable=gender_var, values=["M", "F", "NB", "CAT"]).pack()
-
 tk.Label(menu, text="Origine :", font=("Arial", 12), bg="#252525", fg="white").pack()
 origin_var = tk.StringVar(value=user_settings.get("default_origin", "aléatoire"))
 ttk.Combobox(menu, textvariable=origin_var, values=["aléatoire"] + list(names.keys())).pack()
-
 tk.Label(menu, text="Type de quête :", font=("Arial", 12), bg="#252525", fg="white").pack()
 quest_var = tk.StringVar(value="principale")
 ttk.Combobox(menu, textvariable=quest_var, values=["principale", "secondaire", "compagnon"]).pack()
-
 tk.Label(menu, text="Longueur du nom :", font=("Arial", 12), bg="#252525", fg="white").pack()
 length_var = tk.StringVar(value="normal")
 ttk.Combobox(menu, textvariable=length_var, values=["court", "normal", "long"]).pack()
-
 tk.Label(menu, text="Style :", font=("Arial", 12), bg="#252525", fg="white").pack()
 style_var = tk.StringVar(value="classique")
 ttk.Combobox(menu, textvariable=style_var, values=["classique", "fantasy", "cyberpunk"]).pack()
