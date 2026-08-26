@@ -4,7 +4,8 @@ Voici les dernières annonces et mises à jour de l'application :
   - Ajout de noms
   - Amélioration de l'interface
   - Ajout de paramètre utile
-  - Ajout du sexe : Chat et Non Binaire
+  - Ajout du sexe : Non Binaire
+  - Ajout des noms de Chats
 - 1.2.1 (Sortie le 26/08/2026 à 9:52)
   - Optimisation du programme
   - Ajout d'une monnaie et d'un shop
