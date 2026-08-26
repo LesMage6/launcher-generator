@@ -98,6 +98,11 @@ def ensure_structure():
         "data/languages.json": {"": {}},
         "data/history.json": {"history": []}
     }
+    cache_files = {
+        "cache/images/easter_egg.json": {
+            "link": "easter-egg.txt"
+        }
+    }
 
     for file, default in local_files.items():
         full = path(file)
