@@ -23,7 +23,7 @@ def path(rel):
 LOCAL_NAMES = path("data/names_local.json")
 CACHE_NAMES = path("cache/names_cache.json")
 GITHUB_NAMES_URL = "https://raw.githubusercontent.com/LesMage6/launcher-generator/main/names.json"
-VERSION = "1.2.1b4"
+VERSION = "1.2.1b4a"
 GITHUB_RAW_URL = "https://raw.githubusercontent.com/LesMage6/launcher-generator/refs/heads/main/g%C3%A9n%C3%A9rateur%20de%20nom1.0.py"
 NOTE_DE_MISE_À_JOUR = "Ajout du shop, optimisation"
 REQ_URL = "https://raw.githubusercontent.com/LesMage6/launcher-generator/main/requirements.json"
@@ -87,7 +87,7 @@ def ensure_structure():
     for file, default in user_files.items():
         full = path(file)
         if not os.path.exists(full):
-           s with open(full, "w", encoding="utf-8") as f:
+            with open(full, "w", encoding="utf-8") as f:
                 json.dump(default, f, indent=4, enure_ascii=False)
 
     local_files = {
