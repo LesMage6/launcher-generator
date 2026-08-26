@@ -1,9 +1,7 @@
 {
     "items": [
-        {"name": "1", "price": 20},
-        {"name": "2", "price": 35},
-        {"name": "3", "price": 50},
-        {"name": "4", "price": 80},
-        {"name": "5", "price": 120}
+        {"name": "Journal du 26/08/2026", "price": 50},
+        {"name": "Diamant", "price": 200},
+        {"name": "Lingot de Fer", "price": 40}
     ]
 }
