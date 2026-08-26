@@ -23,7 +23,7 @@ def path(rel):
 LOCAL_NAMES = path("data/names_local.json")
 CACHE_NAMES = path("cache/names_cache.json")
 GITHUB_NAMES_URL = "https://raw.githubusercontent.com/LesMage6/launcher-generator/main/names.json"
-VERSION = "1.2.1a3"
+VERSION = "1.2.1b3"
 GITHUB_RAW_URL = "https://raw.githubusercontent.com/LesMage6/launcher-generator/refs/heads/main/g%C3%A9n%C3%A9rateur%20de%20nom1.0.py"
 NOTE_DE_MISE_À_JOUR = "Ajout du shop, optimisation"
 REQ_URL = "https://raw.githubusercontent.com/LesMage6/launcher-generator/main/requirements.json"
@@ -76,6 +76,10 @@ def ensure_structure():
         "userdata/currency.json": {
             "data": "",
             "checksum": ""
+        },
+        "userdata/info.json": {
+            "info": {VERSION},
+            "alert": "Cube"
         }
     }
 
@@ -91,7 +95,7 @@ def ensure_structure():
             "en": {"M": ["James"], "F": ["Emily"]},
             "jp": {"M": ["Haruto"], "F": ["Aiko"]}
         },
-        "data/languages.json": {"fr": {}, "en": {}, "jp": {}},
+        "data/languages.json": {"": {}},
         "data/history.json": {"history": []}
     }
 
@@ -183,8 +187,7 @@ def update_currency():
 def buy_item(item_name):
     shop = load_shop()
     balance, last_ts, inventory = decode_currency()
-
-    # Trouver l'objet
+    
     item = next((i for i in shop["items"] if i["name"] == item_name), None)
     if not item:
         return "Objet introuvable."
@@ -220,8 +223,7 @@ try:
     with open(LANG_FILE, "r", encoding="utf-8") as f:
         LANG = json.load(f)
 except FileNotFoundError:
-    print("⚠️ Fichier languages.json introuvable.")
-    LANG = {"fr": {}}
+    print("Fichier languages.json.")
 
 current_lang = "fr"
 
