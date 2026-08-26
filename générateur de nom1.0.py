@@ -23,7 +23,7 @@ def path(rel):
 LOCAL_NAMES = path("data/names_local.json")
 CACHE_NAMES = path("cache/names_cache.json")
 GITHUB_NAMES_URL = "https://raw.githubusercontent.com/LesMage6/launcher-generator/main/names.json"
-VERSION = "1.2.1"
+VERSION = "1.2.1a3"
 GITHUB_RAW_URL = "https://raw.githubusercontent.com/LesMage6/launcher-generator/refs/heads/main/g%C3%A9n%C3%A9rateur%20de%20nom1.0.py"
 NOTE_DE_MISE_À_JOUR = "Ajout du shop, optimisation"
 REQ_URL = "https://raw.githubusercontent.com/LesMage6/launcher-generator/main/requirements.json"
@@ -102,8 +102,8 @@ def ensure_structure():
                 json.dump(default, f, indent=4, ensure_ascii=False)
 
 CURRENCY_FILE = path("userdata/currency.json")
-CURRENCY_MAX = 200
-CURRENCY_INTERVAL = 480
+CURRENCY_MAX = 240
+CURRENCY_INTERVAL = 120
 
 def load_shop():
     try:
@@ -113,47 +113,21 @@ def load_shop():
         print("⚠ Impossible de charger le shop GitHub :", e)
         return {"items": []}
 
-SECRET_KEY = "Secret_Key_03058"
-
-def make_checksum(raw_str: str) -> str:
-    return hashlib.sha256((raw_str + SECRET_KEY).encode("utf-8")).hexdigest()
-
-def encode_currency(balance: int, last_ts: float, inventory: list) -> dict:
-    payload = {
-        "balance": balance,
-        "last_ts": last_ts,
-        "inventory": inventory
-    }
-    raw = json.dumps(payload, separators=(",", ":"), ensure_ascii=False)
-    encoded = base64.b64encode(raw.encode("utf-8")).decode("utf-8")
-    checksum = make_checksum(encoded)
-    return {"data": encoded, "checksum": checksum}
-
 def decode_currency() -> tuple[int, float, list]:
     if not os.path.exists(CURRENCY_FILE):
         now = time.time()
-        data = encode_currency(0, now, [])
+        data = {
+            "balance": 0,
+            "last_ts": now,
+            "inventory": []
+        }
         with open(CURRENCY_FILE, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=4, ensure_ascii=False)
         return 0, now, []
 
     try:
         with open(CURRENCY_FILE, "r", encoding="utf-8") as f:
-            stored = json.load(f)
-
-        encoded = stored.get("data", "")
-        checksum = stored.get("checksum", "")
-
-        if make_checksum(encoded) != checksum:
-            print("⚠️ Fichier de monnaie modifié ou corrompu.")
-            now = time.time()
-            data = encode_currency(0, now, [])
-            with open(CURRENCY_FILE, "w", encoding="utf-8") as f:
-                json.dump(data, f, indent=4, ensure_ascii=False)
-            return 0, now, []
-        
-        raw = base64.b64decode(encoded.encode("utf-8")).decode("utf-8")
-        payload = json.loads(raw)
+            payload = json.load(f)
 
         balance = int(payload.get("balance", 0))
         last_ts = float(payload.get("last_ts", time.time()))
@@ -164,15 +138,24 @@ def decode_currency() -> tuple[int, float, list]:
     except Exception as e:
         print("Erreur lecture monnaie :", e)
         now = time.time()
-        data = encode_currency(0, now, [])
+        data = {
+            "balance": 0,
+            "last_ts": now,
+            "inventory": []
+        }
         with open(CURRENCY_FILE, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=4, ensure_ascii=False)
         return 0, now, []
 
 def save_currency(balance: int, last_ts: float, inventory: list):
-    data = encode_currency(balance, last_ts, inventory)
+    data = {
+        "balance": balance,
+        "last_ts": last_ts,
+        "inventory": inventory
+    }
     with open(CURRENCY_FILE, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=4, ensure_ascii=False)
+
 
 def update_currency():
     balance, last_ts, inventory = decode_currency()
