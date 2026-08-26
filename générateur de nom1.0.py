@@ -693,7 +693,7 @@ def generate_name(gender, origin=None):
     if style == "fantasy":
         suffixes = user_tags["tags"].get("fantasy", ["dor", "wyn", "riel", "thor"])
         name += random.choice(suffixes)
-    elif if style == "cyberpunk":
+    elif style == "cyberpunk":
         suffixes = user_tags["tags"].get("cyberpunk", ["-X", "7", "99", "_SYS"])
         name = name.upper() + random.choice(suffixes)
     elif style == "fantasy":
