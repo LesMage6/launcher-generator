@@ -4,6 +4,7 @@
         "cpu_ghz": 0.4,
         "python_version": "3.14",
         "internet_required": true,
+        "moteur": 1,
         "modules": [
             "requests",
             "psutil",
@@ -24,6 +25,7 @@
         "cpu_ghz": 0.6,
         "python_version": "3.14",
         "internet_required": true,
+        "moteur": 1,
         "modules": [
             "requests",
             "psutil",
