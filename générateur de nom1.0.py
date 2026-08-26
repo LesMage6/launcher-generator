@@ -10,35 +10,31 @@ import webbrowser
 from datetime import datetime
 import tkinter as tk
 from tkinter import ttk, messagebox
+import base64
+import hashlib
+import time
+from tkinter import simpledialog
 
-# === Base paths ===
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-
 
 def path(rel):
     return os.path.join(BASE_DIR, rel)
 
-
-# === URLs & constants ===
 LOCAL_NAMES = path("data/names_local.json")
 CACHE_NAMES = path("cache/names_cache.json")
 GITHUB_NAMES_URL = "https://raw.githubusercontent.com/LesMage6/launcher-generator/main/names.json"
-
-VERSION = "1.2"
+VERSION = "1.2.1"
 GITHUB_RAW_URL = "https://raw.githubusercontent.com/LesMage6/launcher-generator/refs/heads/main/g%C3%A9n%C3%A9rateur%20de%20nom1.0.py"
-NOTE_DE_MISE_À_JOUR = "Optimisation du programme"
+NOTE_DE_MISE_À_JOUR = "Ajout du shop, optimisation"
 REQ_URL = "https://raw.githubusercontent.com/LesMage6/launcher-generator/main/requirements.json"
 GITHUB_MD_URL = "https://raw.githubusercontent.com/LesMage6/launcher-generator/main/DETAILS.md"
-
+SHOP_URL = "https://raw.githubusercontent.com/LesMage6/launcher-generator/main/shop.json"
 HISTORY_FILE = path("data/history.json")
 LANG_FILE = path("data/languages.json")
-
 USER_SETTINGS = path("userdata/user_settings.json")
 USER_LIBRARY = path("userdata/user_library.json")
 USER_TAGS = path("userdata/custom_tags.json")
 
-
-# === Création automatique des dossiers et fichiers ===
 def ensure_structure():
     folders = [
         "data",
@@ -50,7 +46,6 @@ def ensure_structure():
         "cache/json",
         "cache/md/book",
     ]
-
     for folder in folders:
         full = path(folder)
         if not os.path.exists(full):
@@ -77,6 +72,10 @@ def ensure_structure():
                 "cat": ["Miaou", "Ronron", "Griffe"],
                 "nb": ["Aeris", "Nova", "Solin"]
             }
+        },
+        "userdata/currency.json": {
+            "data": "",
+            "checksum": ""
         }
     }
 
@@ -102,11 +101,126 @@ def ensure_structure():
             with open(full, "w", encoding="utf-8") as f:
                 json.dump(default, f, indent=4, ensure_ascii=False)
 
+CURRENCY_FILE = path("userdata/currency.json")
+CURRENCY_MAX = 200
+CURRENCY_INTERVAL = 480
+
+def load_shop():
+    try:
+        data = requests.get(SHOP_URL, timeout=5).json()
+        return data
+    except Exception as e:
+        print("⚠ Impossible de charger le shop GitHub :", e)
+        return {"items": []}
+
+SECRET_KEY = "Secret_Key_03058"
+
+def make_checksum(raw_str: str) -> str:
+    return hashlib.sha256((raw_str + SECRET_KEY).encode("utf-8")).hexdigest()
+
+def encode_currency(balance: int, last_ts: float, inventory: list) -> dict:
+    payload = {
+        "balance": balance,
+        "last_ts": last_ts,
+        "inventory": inventory
+    }
+    raw = json.dumps(payload, separators=(",", ":"), ensure_ascii=False)
+    encoded = base64.b64encode(raw.encode("utf-8")).decode("utf-8")
+    checksum = make_checksum(encoded)
+    return {"data": encoded, "checksum": checksum}
+
+def decode_currency() -> tuple[int, float, list]:
+    if not os.path.exists(CURRENCY_FILE):
+        now = time.time()
+        data = encode_currency(0, now, [])
+        with open(CURRENCY_FILE, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=4, ensure_ascii=False)
+        return 0, now, []
+
+    try:
+        with open(CURRENCY_FILE, "r", encoding="utf-8") as f:
+            stored = json.load(f)
+
+        encoded = stored.get("data", "")
+        checksum = stored.get("checksum", "")
+
+        if make_checksum(encoded) != checksum:
+            print("⚠️ Fichier de monnaie modifié ou corrompu.")
+            now = time.time()
+            data = encode_currency(0, now, [])
+            with open(CURRENCY_FILE, "w", encoding="utf-8") as f:
+                json.dump(data, f, indent=4, ensure_ascii=False)
+            return 0, now, []
+        
+        raw = base64.b64decode(encoded.encode("utf-8")).decode("utf-8")
+        payload = json.loads(raw)
+
+        balance = int(payload.get("balance", 0))
+        last_ts = float(payload.get("last_ts", time.time()))
+        inventory = payload.get("inventory", [])
+
+        return balance, last_ts, inventory
+
+    except Exception as e:
+        print("Erreur lecture monnaie :", e)
+        now = time.time()
+        data = encode_currency(0, now, [])
+        with open(CURRENCY_FILE, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=4, ensure_ascii=False)
+        return 0, now, []
+
+def save_currency(balance: int, last_ts: float, inventory: list):
+    data = encode_currency(balance, last_ts, inventory)
+    with open(CURRENCY_FILE, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=4, ensure_ascii=False)
+
+def update_currency():
+    balance, last_ts, inventory = decode_currency()
+    now = time.time()
+
+    elapsed = now - last_ts
+    if elapsed < CURRENCY_INTERVAL:
+        return balance
+
+    ticks = int(elapsed // CURRENCY_INTERVAL)
+    if ticks <= 0:
+        return balance
+
+    new_balance = balance + ticks
+    if new_balance > CURRENCY_MAX:
+        new_balance = CURRENCY_MAX
+
+    last_ts = now
+
+    save_currency(new_balance, last_ts, inventory)
+
+    print(f"Monnaie mise à jour : {new_balance}")
+    return new_balance
+
+def buy_item(item_name):
+    shop = load_shop()
+    balance, last_ts, inventory = decode_currency()
+
+    # Trouver l'objet
+    item = next((i for i in shop["items"] if i["name"] == item_name), None)
+    if not item:
+        return "Objet introuvable."
+
+    price = item["price"]
+
+    if balance < price:
+        return f"Monnaie insuffisante ({balance}/{price})."
+
+    new_balance = balance - price
+
+    inventory.append(item_name)
+
+    save_currency(new_balance, time.time(), inventory)
+
+    return f"Tu as acheté : {item_name} pour {price} monnaie."
 
 ensure_structure()
 
-
-# === Chargement des données utilisateur ===
 def load_user_data():
     with open(USER_SETTINGS, "r", encoding="utf-8") as f:
         settings = json.load(f)
@@ -119,7 +233,6 @@ def load_user_data():
 
 user_settings, user_library, user_tags = load_user_data()
 
-# === Langues ===
 try:
     with open(LANG_FILE, "r", encoding="utf-8") as f:
         LANG = json.load(f)
@@ -129,8 +242,6 @@ except FileNotFoundError:
 
 current_lang = "fr"
 
-
-# === Audio ===
 def play_sound(sound_path):
     try:
         pygame.mixer.init()
@@ -138,8 +249,6 @@ def play_sound(sound_path):
     except Exception as e:
         print("Erreur audio :", e)
 
-
-# === Historique ===
 def add_history(note, version):
     try:
         if not os.path.exists(HISTORY_FILE):
@@ -164,8 +273,6 @@ def add_history(note, version):
     except Exception as e:
         print("Erreur historique :", e)
 
-
-# === Loader général (GitHub → cache → local) ===
 def load_general_data(url, cache_path, local_path=None):
     try:
         data = requests.get(url, timeout=5).json()
@@ -200,8 +307,6 @@ def load_general_data(url, cache_path, local_path=None):
 
 names = load_general_data(GITHUB_NAMES_URL, CACHE_NAMES, LOCAL_NAMES)
 
-
-# === Vérification matériel ===
 def check_system_requirements():
     try:
         print("→ Vérification du matériel...")
@@ -275,7 +380,6 @@ def load_book_index():
         print("⚠ Impossible de charger l'index du livre.")
         return None
 
-# === Vérification mise à jour ===
 def check_update():
     try:
         print("→ Vérification des mises à jour...")
@@ -318,8 +422,6 @@ def update_program(new_code):
     print("→ Mise à jour terminée ! Redémarrage...")
     os.execv(sys.executable, ["python"] + sys.argv)
 
-
-# === Markdown stylé ===
 def render_markdown(md_text, parent):
     import tkinter as tk
 
@@ -452,16 +554,11 @@ def open_chapter(chapter_file):
     else:
         messagebox.showerror("Erreur", "Impossible de charger ce chapitre.")
 
-# === Données de génération ===
-default_origins = ["fr", "en", "jp", "ch", "russe", "grec"]
+default_origins = ["fr", "en", "jp"]
 
 elements = ["Vent", "Lumière", "Roche", "Feu", "Foudre", "Eau", "Ombre", "Plante", "Glace"]
-roles = [
-    "DPS", "Support ATQ", "Tank", "Sustain", "Support Universel", "Contrôleur", "Invocateur", "Debuff", "DPS DoT", "DPS Crit"
-]
-specialisations = [
-    "Compétence", "ATQ Normale", "Ultime", "Aiguisage", "Invocation", "Bouclier", "Surcharge", "Combo", "Amplification", "ATQ de Suivi"
-]
+roles = ["DPS", "Support ATQ", "Tank", "Sustain", "Support Universel", "Contrôleur", "Invocateur", "Debuff", "DPS DoT", "DPS Crit"]
+specialisations = ["Compétence", "ATQ Normale", "Ultime", "Aiguisage", "Invocation", "Bouclier", "Surcharge", "Combo", "Amplification", "ATQ de Suivi"]
 story_why = [
     "Un événement tragique bouleverse sa vie.",
     "Il/Elle cherche à protéger quelqu’un de précieux.",
@@ -575,8 +672,6 @@ faction_cards = {
     "Objectif": ["Dominer le monde", "Protéger un secret", "Ressusciter un dieu", "Déclencher une révolution"]
 }
 
-
-# === Génération ===
 def generate_name(gender, origin=None):
     gender = gender.upper()
     if gender not in ["M", "F", "NB", "CAT"]:
@@ -610,9 +705,8 @@ def generate_name(gender, origin=None):
         name = name[:4]
     elif length == "long":
         name = name + random.choice(pool)
-
+        
     return name
-
 
 def generate_idea6(gender, origin=None):
     name = generate_name(gender, origin)
@@ -645,7 +739,7 @@ def ui_book_menu():
 
     win = tk.Toplevel(root)
     win.title(index["titre"])
-    win.geometry("400x400")
+    win.geometry("450x450")
 
     for chap in index["chapitres"]:
         tk.Button(
@@ -689,7 +783,6 @@ def generate_quest(qtype):
 
     return result
 
-
 def generate_faction():
     faction = {
         "Type": random.choice(faction_cards["Type"]),
@@ -707,9 +800,6 @@ def generate_faction():
 
 check_system_requirements()
 check_update()
-
-# === Tkinter ===
-
 
 def afficher(texte):
     output.delete("1.0", tk.END)
@@ -742,31 +832,25 @@ def ui_fullidea():
     perso = generate_fullidea(gender, origin)
     afficher(perso)
 
-
 def ui_quest():
     qtype = quest_var.get()
     q = generate_quest(qtype)
     afficher(q)
 
-
 def ui_faction():
     f = generate_faction()
     afficher(f)
-
 
 def ui_update():
     check_update()
     messagebox.showinfo("Mise à jour", "Vérification terminée.")
 
-
 def ui_requirements():
     check_system_requirements()
     messagebox.showinfo("Matériel", "Vérification terminée.")
 
-
 def ui_quit():
     root.destroy()
-
 
 def ui_save_user():
     user_settings["pseudo"] = pseudo_var.get()
@@ -774,8 +858,47 @@ def ui_save_user():
         json.dump(user_settings, f, indent=4, ensure_ascii=False)
     messagebox.showinfo("OK", "Paramètres utilisateur sauvegardés.")
 
+def ui_update_currency():
+    balance = update_currency()
+    try:
+        output.insert(tk.END, f"\nMonnaie actuelle : {balance}\n")
+    except Exception:
+        pass
+    root.after(60000, ui_update_currency)
 
-# === Fenêtre ===
+def ui_show_currency():
+    balance, _ = decode_currency()
+    messagebox.showinfo("Monnaie", f"Tu as actuellement {balance} unités (max {CURRENCY_MAX}).")
+
+def set_currency(amount):
+    balance, last_ts, inventory = decode_currency()
+    save_currency(amount, time.time(), inventory)
+
+def ui_shop():
+    shop = load_shop()
+    text = "-== Shop ==-\n\n"
+    for item in shop["items"]:
+        text += f"{item['name']} — {item['price']} monnaie\n"
+    afficher(text)
+
+def ui_inventory():
+    balance, last_ts, inventory = decode_currency()
+    text = "-== Inventaire ==-\n\n"
+    if not inventory:
+        text += "Inventaire vide."
+    else:
+        for item in inventory:
+            text += f"- {item}\n"
+    afficher(text)
+
+def ui_buy():
+    item = simpledialog.askstring("Achat", "Nom de l'objet à acheter :")
+    if item:
+        result = buy_item(item)
+        messagebox.showinfo("Achat", result)
+
+
+
 root = tk.Tk()
 root.title(f"Générateur de Nom v{VERSION}")
 root.geometry("900x600")
@@ -790,12 +913,14 @@ root.configure(bg="#1e1e1e")
 menu.configure(bg="#252525")
 
 style_btn = {
-    "bg": "#3a3a3a",
+    "bg": "#4e4e4e",
     "fg": "white",
-    "activebackground": "#505050",
+    "activebackground": "#5A5A5A",
     "activeforeground": "white",
     "font": ("Segoe UI", 11)
 }
+ui_update_currency()
+
 
 tk.Label(menu, text="Pseudo :", font=("Arial", 12), bg="#252525", fg="white").pack()
 pseudo_var = tk.StringVar(value=user_settings.get("pseudo", "LM6"))
@@ -828,9 +953,13 @@ tk.Button(menu, text="Livre : Chapitres", command=ui_book_menu, **style_btn).pac
 tk.Button(menu, text="Quête", command=ui_quest, **style_btn).pack(fill=tk.X)
 tk.Button(menu, text="Faction", command=ui_faction, **style_btn).pack(fill=tk.X)
 tk.Button(menu, text="Infos & Mises à jour", command=open_markdown_info, **style_btn).pack(fill=tk.X)
+tk.Button(menu, text="Magasin", command=ui_shop, **style_btn).pack(fill=tk.X)
+tk.Button(menu, text="Acheter un objet", command=ui_buy, **style_btn).pack(fill=tk.X)
+tk.Button(menu, text="Inventaire", command=ui_inventory, **style_btn).pack(fill=tk.X)
 tk.Button(menu, text="Sauvegarder paramètres", command=ui_save_user, **style_btn).pack(fill=tk.X)
 tk.Button(menu, text="Vérifier mise à jour", command=ui_update, **style_btn).pack(fill=tk.X)
 tk.Button(menu, text="Vérifier matériel", command=ui_requirements, **style_btn).pack(fill=tk.X)
+tk.Button(menu, text="Voir la monnaie", command=ui_show_currency, **style_btn).pack(fill=tk.X)
 tk.Button(menu, text="Quitter", command=ui_quit, **style_btn).pack(fill=tk.X)
 
 root.mainloop()
