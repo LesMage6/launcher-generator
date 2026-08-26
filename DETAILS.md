@@ -5,7 +5,7 @@ Voici les dernières annonces et mises à jour de l'application :
   - Amélioration de l'interface
   - Ajout de paramètre utile
   - Ajout du sexe : Chat et Non Binaire
-- 1.2.1 (Bientôt)
+- 1.2.1 (Sortie le 26/08/2026 à 9:52)
   - Optimisation du programme
   - Ajout d'une monnaie et d'un shop
 - 1.3 (bientôt)
