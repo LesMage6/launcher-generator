@@ -1,3 +1,7 @@
+#Générateur de Nom python. Le code est Open Source.
+#Attention : Les bugs peuvent survenir, surtout sur des version cracké.
+#Si vous télécharger ou achetez le code sur des services tiers, ne nous somme pas tenus responsable en cas de virus caché. Merci de votre comprééhension
+#LM6
 import random
 import json
 import os
@@ -23,9 +27,9 @@ def path(rel):
 LOCAL_NAMES = path("data/names_local.json")
 CACHE_NAMES = path("cache/names_cache.json")
 GITHUB_NAMES_URL = "https://raw.githubusercontent.com/LesMage6/launcher-generator/main/names.json"
-VERSION = "1.2.1b6"
+VERSION = "1.2.1b6aw7"
 GITHUB_RAW_URL = "https://raw.githubusercontent.com/LesMage6/launcher-generator/refs/heads/main/g%C3%A9n%C3%A9rateur%20de%20nom1.0.py"
-NOTE_DE_MISE_À_JOUR = "Ajout de nouvelles données"
+NOTE_DE_MISE_À_JOUR = "Amélioration de la qualité de jeu"
 REQ_URL = "https://raw.githubusercontent.com/LesMage6/launcher-generator/main/requirements.json"
 GITHUB_MD_URL = "https://raw.githubusercontent.com/LesMage6/launcher-generator/main/DETAILS.md"
 SHOP_URL = "https://raw.githubusercontent.com/LesMage6/launcher-generator/main/shop.json"
@@ -86,8 +90,8 @@ def ensure_structure():
             "data": "",
             "checksum": ""
         },
-        "userdata/info.json": {
-            "info": "LocaleB112",
+        "userdata/info10.json": {
+            "info": "LocalB114",
             "alert": "Cube"
         }
     }
@@ -109,19 +113,21 @@ def ensure_structure():
         "cache/images/easter_egg.json": {
             "link": "easter-egg.txt"
         },
-        "cache/txt/cat_name.json": {
-            "name": {
+        "cache/txt/cat_name_v2.json": {
                 "Hermione",
                 "Sushi",
                 "O'malley",
                 "Caramel"
-            }
         },
         f"cache/json/{VERSION}/v2.0.json": {
-            "Version Actuelle": f"{VERSION}",
+            "Version Actuelle": f"V{VERSION}",
             "Version du Moteur actuelle": f"{VERSION_MOTEUR}",
-            "ID de l'application": 32582570,
+            "ID de l'application": 32582571,
             "Données Supplémentaire": "01000110 01100001 01101001 01110100 00100000 01110000 01100001 01110010 00100000 01001100 01001101 00110110 00100000 01000011 01101111 01101101 01110000 01100001 01100111 01101110 01111001 00101100 00111011 00101100 00100000 01010011 01100101 01110010 01110110 01100101 01110101 01110010 00100000 01100111 11101001 01101110 11101001 01110010 11101001 00100000 01100111 01110010 11100010 01100011 01100101 00100000 11100000 00100000 01000111 01101001 01110100 01001000 01110101 01100010 00101100 00111011 00101100 00100000 01010110 01100101 01110010 01110011 01101001 01101111 01101110 00100000 01001111 01110000 01100101 01101110 00100000 01010011 01101111 01110101 01110010 01100011 01100101 00101100 00111011 00101100 00100000 01000011 01100101 00100000 01100110 01101001 01100011 01101000 01101001 01100101 01110010 00100000 01100101 01110011 01110100 00100000 01100001 01101010 01101111 01110101 01110100 11101001 00100000 01100100 01100101 00100000 00110010 00110111 00101111 00110000 00111000 00101111 00110010 00110000 00110010 00110110 00100000 11100000 00100000 00110001 00110111 00100000 01101000 01100101 01110101 01110010 01100101 00100000 00110000 00110001"
+        },
+        f"cache/json/{VERSION}/INFO.json": {
+            "debug": f"{VERSION}, {VERSION_MOTEUR}",
+            f"{INFO}": 1
         }
     }
 
@@ -879,6 +885,8 @@ def ui_requirements():
     messagebox.showinfo("Matériel", "Vérification terminée.")
 
 def ui_quit():
+    check_update()
+    print("L'application a bien fermé")
     root.destroy()
 
 def ui_save_user():
@@ -905,7 +913,7 @@ def set_currency(amount):
 
 def ui_shop():
     shop = load_shop()
-    text = "-== Shop ==-\n\n"
+    text = "=== Shop ===\nAchetez des items\n\n"
     for item in shop["items"]:
         text += f"{item['name']} — {item['price']} monnaie\n"
     afficher(text)
@@ -927,7 +935,7 @@ def ui_buy():
         messagebox.showinfo("Achat", result)
 
 root = tk.Tk()
-root.title(f"Générateur de Nom v{VERSION}")
+root.title(f"Generateur de Nom v{VERSION}")
 root.geometry("1100x800")
 
 output = tk.Text(root, height=25, width=80, font=("Consolas", 12))
