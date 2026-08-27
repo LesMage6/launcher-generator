@@ -348,7 +348,7 @@ def check_system_requirements():
             play_sound("data/sounds/alert.wav")
             return
 
-        if python_ver != min_req["python_version"]:
+        if python_ver != min_req["python_version"] or python_ver != "3.14.4"["python_version"]:
             print("⚠️ Version Python trop ancienne. Veuillez installez au minimum Python 3.14 !")
             play_sound("data/sounds/alert.wav")
             return
