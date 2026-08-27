@@ -23,7 +23,7 @@ def path(rel):
 LOCAL_NAMES = path("data/names_local.json")
 CACHE_NAMES = path("cache/names_cache.json")
 GITHUB_NAMES_URL = "https://raw.githubusercontent.com/LesMage6/launcher-generator/main/names.json"
-VERSION = "1.2.1b4a"
+VERSION = "1.2.1b5"
 GITHUB_RAW_URL = "https://raw.githubusercontent.com/LesMage6/launcher-generator/refs/heads/main/g%C3%A9n%C3%A9rateur%20de%20nom1.0.py"
 NOTE_DE_MISE_À_JOUR = "Ajout du shop, optimisation"
 REQ_URL = "https://raw.githubusercontent.com/LesMage6/launcher-generator/main/requirements.json"
@@ -34,6 +34,12 @@ LANG_FILE = path("data/languages.json")
 USER_SETTINGS = path("userdata/user_settings.json")
 USER_LIBRARY = path("userdata/user_library.json")
 USER_TAGS = path("userdata/custom_tags.json")
+VERSION_MOTEUR = 1
+INFO = {
+            "Version Actuelle": {VERSION},
+            "Version du Moteur actuelle": {VERSION_MOTEUR},
+            "ID de l'application": 32582569
+        }
 
 def ensure_structure():
     folders = [
@@ -46,6 +52,7 @@ def ensure_structure():
         "cache/json",
         "cache/md/book",
         "cache/md/patchNote",
+        f"cache/json/{VERSION}"
     ]
     for folder in folders:
         full = path(folder)
@@ -68,7 +75,8 @@ def ensure_structure():
         },
         "userdata/custom_tags.json": {
             "tags": {
-                "fantasy": ["dor", "wyn", "riel", "thor"],
+                "fantasy (ancien)": ["dor", "wyn", "riel", "thor"],
+                "fantasy": ["Faie ", "Reine ", "Chevalier ", "Mademoiselle "],
                 "cyberpunk": ["-X", "7", "99", "_SYS"],
                 "cat": ["Miaou", "Ronron", "Griffe"],
                 "nb": ["Aeris", "Nova", "Solin"]
@@ -88,7 +96,7 @@ def ensure_structure():
         full = path(file)
         if not os.path.exists(full):
             with open(full, "w", encoding="utf-8") as f:
-                json.dump(default, f, indent=4, enure_ascii=False)
+                json.dump(default, f, indent=4, ensure_ascii=False)
 
     local_files = {
         "data/names_local.json": {
@@ -97,8 +105,7 @@ def ensure_structure():
             "jp": {"M": ["Haruto"], "F": ["Aiko"]}
         },
         "data/languages.json": {"": {}},
-        "data/history.json": {"history": []
-        },
+        "data/history.json": {"history": []},
         "cache/images/easter_egg.json": {
             "link": "easter-egg.txt"
         },
@@ -109,6 +116,11 @@ def ensure_structure():
                 "O'malley",
                 "Caramel"
             }
+        },
+        f"cache/json/{VERSION}/v2.0.json": {
+            "Version Actuelle": {VERSION},
+            "Version du Moteur actuelle": {VERSION_MOTEUR},
+            "ID de l'application": 32582569
         }
     }
 
@@ -328,6 +340,7 @@ def check_system_requirements():
         print(f"CPU détecté : {cpu_ghz:.2f} GHz")
         print(f"Python détecté : {python_ver}")
         print(f"OS détecté : {os_name}")
+        print(f"Version du moteur détecté : {VERSION_MOTEUR}")
 
         if os_name not in min_req["os"]:
             print(f"⚠️ OS non supporté ({os_name}).")
@@ -359,6 +372,12 @@ def check_system_requirements():
 
         if ram_mb < rec_req["ram_mb"] or cpu_ghz < rec_req["cpu_ghz"]:
             print("⚠️ Performances inférieures aux recommandations.")
+            play_sound("data/sounds/warning.wav")
+        if {VERSION_MOTEUR} < rec_req["moteur"]:
+            print("⚠️ Le moteur n'est pas mis à jour. Il est reccomander de le mettre à jour")
+            play_sound("data/sounds/warning.wav")
+        if {VERSION_MOTEUR} < min_req["moteur"]:
+            print("⚠️ Le moteur n'est pas mis à jour. Les performances peuvent être réduites.")
             play_sound("data/sounds/warning.wav")
         else:
             print("✔️ Votre appareil respecte les performances recommandées.")
@@ -408,6 +427,9 @@ def check_update():
     except Exception as e:
         print("Erreur lors de la vérification :", e)
 
+    
+        
+
 
 def update_program(new_code):
     print("→ Mise à jour en cours...")
@@ -424,7 +446,7 @@ def render_markdown(md_text, parent):
     import tkinter as tk
 
     win = tk.Toplevel(parent)
-    win.title("Informations & Mises à jour")
+    win.title("Patch Note")
     win.geometry("900x650")
 
     canvas = tk.Canvas(win)
@@ -543,7 +565,7 @@ def open_markdown_info():
         md_text = response.text
         render_markdown(md_text, root)
         with open('cache/md/patchNote/resultats.txt', 'w') as fichier:
-            fichier.write("Sauvegarde", f"{md_text}")
+            fichier.write(f"Sauvegarde{md_text}")
 
     except Exception as e:
         messagebox.showerror("Erreur", f"Impossible de charger le fichier .md.\n\nDétails : {e}")
@@ -694,7 +716,7 @@ def generate_name(gender, origin=None):
     name = random.choice(pool)
 
     style = style_var.get()
-    if style == "fantasy":
+    if style == "fantasy (ancien)":
         suffixes = user_tags["tags"].get("fantasy", ["dor", "wyn", "riel", "thor"])
         name += random.choice(suffixes)
     elif style == "cyberpunk":
@@ -702,7 +724,7 @@ def generate_name(gender, origin=None):
         name = name.upper() + random.choice(suffixes)
     elif style == "fantasy":
         préfixe = user_tags["tags"].get("fantasy", ["Faie ", "Reine ", "Chevalier ", "Mademoiselle "])
-        name = random.choice(suffixes) + name.upper()
+        name = random.choice(préfixe) + name.upper()
 
     length = length_var.get()
     if length == "court":
@@ -807,12 +829,10 @@ check_update()
 
 def afficher(texte):
     output.delete("1.0", tk.END)
-
     if isinstance(texte, (dict, list)):
         texte = json.dumps(texte, indent=4, ensure_ascii=False)
     else:
         texte = str(texte)
-
     output.insert(tk.END, texte)
 
 
@@ -822,7 +842,6 @@ def ui_start():
     name = generate_name(gender, origin)
     afficher(name)
 
-
 def ui_idea6():
     gender = gender_var.get()
     origin = origin_var.get() or None
@@ -831,6 +850,8 @@ def ui_idea6():
 
 
 def ui_fullidea():
+    with open('userdata/currency.json', 'r') as fichier:
+       contenu = fichier.read()
     gender = gender_var.get()
     origin = origin_var.get() or None
     perso = generate_fullidea(gender, origin)
@@ -901,8 +922,6 @@ def ui_buy():
         result = buy_item(item)
         messagebox.showinfo("Achat", result)
 
-
-
 root = tk.Tk()
 root.title(f"Générateur de Nom v{VERSION}")
 root.geometry("1000x700")
@@ -942,7 +961,7 @@ length_var = tk.StringVar(value="normal")
 ttk.Combobox(menu, textvariable=length_var, values=["court", "normal", "long"]).pack()
 tk.Label(menu, text="Style :", font=("Arial", 12), bg="#252525", fg="white").pack()
 style_var = tk.StringVar(value="classique")
-ttk.Combobox(menu, textvariable=style_var, values=["classique", "fantasy", "cyberpunk"]).pack()
+ttk.Combobox(menu, textvariable=style_var, values=["classique", "fantasy (ancien)", "cyberpunk", "Fantasy"]).pack()
 
 tk.Button(menu, text="Générer un nom", command=ui_start, **style_btn).pack(fill=tk.X)
 tk.Button(menu, text="Personnage simple", command=ui_idea6, **style_btn).pack(fill=tk.X)
