@@ -1,3 +1,10 @@
+Cette application est Open Source !
+Attention : Les bugs peuvent survenir, surtout sur des version cracké.
+Si vous télécharger ou achetez le code sur des services tiers, ne nous somme pas tenus responsable en cas de virus caché. Merci de votre comprééhension
+LM6, le créateur
+
+---
+
 Bienvenue dans Générateur de nom !
 Voici les dernières annonces et mises à jour de l'application :
 - 1.2 (sortie le 16/07/2026 à 10:58 (heure Française))
