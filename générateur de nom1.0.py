@@ -23,9 +23,9 @@ def path(rel):
 LOCAL_NAMES = path("data/names_local.json")
 CACHE_NAMES = path("cache/names_cache.json")
 GITHUB_NAMES_URL = "https://raw.githubusercontent.com/LesMage6/launcher-generator/main/names.json"
-VERSION = "1.2.1b5"
+VERSION = "1.2.1b6"
 GITHUB_RAW_URL = "https://raw.githubusercontent.com/LesMage6/launcher-generator/refs/heads/main/g%C3%A9n%C3%A9rateur%20de%20nom1.0.py"
-NOTE_DE_MISE_À_JOUR = "Ajout du shop, optimisation"
+NOTE_DE_MISE_À_JOUR = "Ajout de nouvelles données"
 REQ_URL = "https://raw.githubusercontent.com/LesMage6/launcher-generator/main/requirements.json"
 GITHUB_MD_URL = "https://raw.githubusercontent.com/LesMage6/launcher-generator/main/DETAILS.md"
 SHOP_URL = "https://raw.githubusercontent.com/LesMage6/launcher-generator/main/shop.json"
@@ -34,7 +34,7 @@ LANG_FILE = path("data/languages.json")
 USER_SETTINGS = path("userdata/user_settings.json")
 USER_LIBRARY = path("userdata/user_library.json")
 USER_TAGS = path("userdata/custom_tags.json")
-VERSION_MOTEUR = 1
+VERSION_MOTEUR = 1.1
 INFO = {
             "Version Actuelle": {VERSION},
             "Version du Moteur actuelle": {VERSION_MOTEUR},
@@ -118,9 +118,10 @@ def ensure_structure():
             }
         },
         f"cache/json/{VERSION}/v2.0.json": {
-            "Version Actuelle": {VERSION},
-            "Version du Moteur actuelle": {VERSION_MOTEUR},
-            "ID de l'application": 32582569
+            "Version Actuelle": f"{VERSION}",
+            "Version du Moteur actuelle": f"{VERSION_MOTEUR}",
+            "ID de l'application": 32582570,
+            "Données Supplémentaire": "01000110 01100001 01101001 01110100 00100000 01110000 01100001 01110010 00100000 01001100 01001101 00110110 00100000 01000011 01101111 01101101 01110000 01100001 01100111 01101110 01111001 00101100 00111011 00101100 00100000 01010011 01100101 01110010 01110110 01100101 01110101 01110010 00100000 01100111 11101001 01101110 11101001 01110010 11101001 00100000 01100111 01110010 11100010 01100011 01100101 00100000 11100000 00100000 01000111 01101001 01110100 01001000 01110101 01100010 00101100 00111011 00101100 00100000 01010110 01100101 01110010 01110011 01101001 01101111 01101110 00100000 01001111 01110000 01100101 01101110 00100000 01010011 01101111 01110101 01110010 01100011 01100101 00101100 00111011 00101100 00100000 01000011 01100101 00100000 01100110 01101001 01100011 01101000 01101001 01100101 01110010 00100000 01100101 01110011 01110100 00100000 01100001 01101010 01101111 01110101 01110100 11101001 00100000 01100100 01100101 00100000 00110010 00110111 00101111 00110000 00111000 00101111 00110010 00110000 00110010 00110110 00100000 11100000 00100000 00110001 00110111 00100000 01101000 01100101 01110101 01110010 01100101 00100000 00110000 00110001"
         }
     }
 
@@ -131,7 +132,7 @@ def ensure_structure():
                 json.dump(default, f, indent=4, ensure_ascii=False)
 
 CURRENCY_FILE = path("userdata/currency.json")
-CURRENCY_MAX = 240
+CURRENCY_MAX = 280
 CURRENCY_INTERVAL = 120
 
 def load_shop():
@@ -347,7 +348,7 @@ def check_system_requirements():
             play_sound("data/sounds/alert.wav")
             return
 
-        if python_ver < min_req["python_version"]:
+        if python_ver != min_req["python_version"]:
             print("⚠️ Version Python trop ancienne. Veuillez installez au minimum Python 3.14 !")
             play_sound("data/sounds/alert.wav")
             return
@@ -426,10 +427,6 @@ def check_update():
             print("Aucune mise à jour disponible.")
     except Exception as e:
         print("Erreur lors de la vérification :", e)
-
-    
-        
-
 
 def update_program(new_code):
     print("→ Mise à jour en cours...")
@@ -587,14 +584,18 @@ story_why = [
     "Il/Elle cherche à protéger quelqu’un de précieux.",
     "Une prophétie annonce son rôle dans un conflit majeur.",
     "Il/Elle fuit une organisation qui veut l’utiliser.",
-    "Son pouvoir s’est éveillé accidentellement."
+    "Son pouvoir s’est éveillé accidentellement.",
+    "La mort d'un de ses proches la bouleverse",
+    "Elle découvre un fragments du passé de sa civilisation"
 ]
 story_trigger = [
     "Une attaque inattendue déclenche l’aventure.",
-    "Un proche meurt.",
     "Un ennemi mystérieux apparaît.",
     "Un allié trahit le groupe.",
-    "Une guerre éclate."
+    "Une guerre éclate.",
+    "Elle part à l'aventure",
+    "Le joueur la sauve",
+    "Le joueur arrive dans son village"
 ]
 story_end = [
     "Good Ending",
@@ -614,9 +615,9 @@ story_bonus = [
 quest_cards = {
     "principale": {
         "Conflit central": ["Guerre", "Démon", "Vengeance", "Tueur"],
-        "Ennemi majeur": ["Gobelin", "Roi", "Âme Corrompu"],
-        "Motivation du héros": ["Sauver un proche", "Empêcher une catastrophe", "Venger son village"],
-        "Lieu clé": ["La Citadelle Noire", "Les Ruines Astrales", "La Forêt des Murmures"],
+        "Ennemi majeur": ["Gobelin", "Roi", "Âme Corrompu", "Voleur", "Traître"],
+        "Motivation du héros": ["Sauver un proche", "Empêcher une catastrophe", "Venger son village", "Trouver un ami disparu"],
+        "Lieu clé": ["Une Citadelle", "Des Ruines", "Une Forêt"],
         "Épreuve majeure": ["Affronter une armée entière", "Résoudre un puzzle ancien", "Survivre à un piège mortel"],
         "Récompense": ["Un artefact légendaire", "Un pouvoir scellé", "Une vérité oubliée"]
     },
@@ -624,12 +625,15 @@ quest_cards = {
         "Problème local": [
             "Des monstres attaquent la région",
             "Un vol mystérieux",
-            "Une disparition inquiétante"
+            "Une disparition inquiétante",
+            "Un étrange évènement se produit"
         ],
         "PNJ demandeur": [
             "Un marchand paniqué",
             "Un enfant perdu",
-            "Un garde blessé"
+            "Un garde blessé",
+            "Un chasseur perdu",
+            "Une dame âgé volé"
         ],
         "Obstacle": [
             "Une grotte infestée",
@@ -642,14 +646,16 @@ quest_cards = {
             "Une lettre perdue"
         ],
         "Lieu": [
-            "Le Port Brisé",
-            "La Mine Abandonnée",
-            "Le Marais Gris"
+            "Un Port",
+            "Une Mine Abandonnée",
+            "Une Mine",
+            "Un Marais"
         ],
         "Récompense": [
             "De l’or",
             "Un objet utile",
-            "Une faveur future"
+            "Une faveur future",
+            "Des matériaux d'amélioration"
         ]
     },
     "compagnon": {
@@ -699,12 +705,10 @@ def generate_name(gender, origin=None):
     gender = gender.upper()
     if gender not in ["M", "F", "NB", "CAT"]:
         return "Erreur : genre invalide (M, F, NB ou CAT)."
-
     if gender == "NB":
         origin = "nonbinaire"
     elif gender == "CAT":
         origin = "chat"
-
     if origin == "aléatoire" or origin is None:
         origin = random.choice(list(names.keys()))
 
@@ -765,7 +769,7 @@ def ui_book_menu():
 
     win = tk.Toplevel(root)
     win.title(index["titre"])
-    win.geometry("450x450")
+    win.geometry("500x500")
 
     for chap in index["chapitres"]:
         tk.Button(
@@ -924,7 +928,7 @@ def ui_buy():
 
 root = tk.Tk()
 root.title(f"Générateur de Nom v{VERSION}")
-root.geometry("1000x700")
+root.geometry("1100x800")
 
 output = tk.Text(root, height=25, width=80, font=("Consolas", 12))
 output.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True)
@@ -969,7 +973,7 @@ tk.Button(menu, text="Personnage avancé", command=ui_fullidea, **style_btn).pac
 tk.Button(menu, text="Livre : Chapitres", command=ui_book_menu, **style_btn).pack(fill=tk.X)
 tk.Button(menu, text="Quête", command=ui_quest, **style_btn).pack(fill=tk.X)
 tk.Button(menu, text="Faction", command=ui_faction, **style_btn).pack(fill=tk.X)
-tk.Button(menu, text="Infos & Mises à jour", command=open_markdown_info, **style_btn).pack(fill=tk.X)
+tk.Button(menu, text="Patch Notes", command=open_markdown_info, **style_btn).pack(fill=tk.X)
 tk.Button(menu, text="Magasin", command=ui_shop, **style_btn).pack(fill=tk.X)
 tk.Button(menu, text="Acheter un objet", command=ui_buy, **style_btn).pack(fill=tk.X)
 tk.Button(menu, text="Inventaire", command=ui_inventory, **style_btn).pack(fill=tk.X)
