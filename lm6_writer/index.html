@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Éditeur LM6 — V4 Assistant 🇫🇷🇪🇺</title>
+<title>Éditeur LM6</title>
 <style>
   :root {
     --violet: #6d28d9; --violet-dark: #5b21b6; --rose: #db2777; --bleu-eu: #0552fa; --mistral: #ff7000;
@@ -187,7 +187,7 @@
 <body>
 
 <header>
-  <h1>✒️ Éditeur LM6 <span class="chip">V4 · 🇫🇷🇪🇺</span></h1>
+  <h1>✒️ Éditeur LM6 <span class="chip"></span></h1>
   <input id="docName" class="doc-name" placeholder="Nom du document…" />
   <div class="spacer"></div>
   <span class="chip" id="wordCount">0 mots</span>
@@ -271,15 +271,15 @@
   <div class="page-num" id="pageNum">1</div>
 </div></main>
 
-<div id="status">Bienvenue dans la V4 🇫🇷🇪🇺 — Correction LanguageTool (🇩🇪🇪🇺), IA Mistral (🇫🇷🇪🇺, optionnelle), le reste est 100 % local.</div>
+<div id="status">Bienvenue dans la V4 — Correction LanguageTool (🇩🇪🇪🇺), IA Mistral (🇫🇷🇪🇺, optionnelle), le reste est 100 % local.</div>
 
 <aside class="panel" id="emotePanel">
-  <h2>😄 Émotes Furina <button class="close" data-close="emotePanel">✕</button></h2>
+  <h2>😄 Émotes Intégré <button class="close" data-close="emotePanel">✕</button></h2>
   <div class="emote-grid" id="furinaGrid"></div>
   <h2 style="margin-top:18px">😀 Emojis <button class="close" data-close="emotePanel">✕</button></h2>
   <div class="emoji-grid" id="emojiGrid"></div>
   <h2 style="margin-top:18px">⭐ Mes émotes perso</h2>
-  <p style="font-size:.8rem;color:var(--muted)">Ajoute tes propres images. Elles restent dans ton navigateur.</p>
+  <p style="font-size:.8rem;color:var(--muted)">Ajoute tes propres images. Elles restent dans ton navigateur/app.</p>
   <button class="btn" id="btnAddEmote" style="width:100%">➕ Ajouter une émote</button>
   <input type="file" id="emoteFile" accept="image/*" multiple hidden />
   <div class="emote-grid" id="customGrid" style="margin-top:10px"></div>
