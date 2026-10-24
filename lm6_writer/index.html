@@ -1,0 +1,1209 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Éditeur LM6 — V4 Assistant 🇫🇷🇪🇺</title>
+<style>
+  :root {
+    --violet: #6d28d9; --violet-dark: #5b21b6; --rose: #db2777; --bleu-eu: #0552fa; --mistral: #ff7000;
+    --bg: #f3f4f6; --surface: #ffffff; --text: #111827; --muted: #6b7280;
+    --border: #e5e7eb; --shadow: 0 4px 14px rgba(0,0,0,.08);
+    font-family: 'Segoe UI', system-ui, sans-serif;
+  }
+  body.dark {
+    --bg: #111827; --surface: #1f2937; --text: #e5e7eb; --muted: #9ca3af;
+    --border: #374151; --shadow: 0 4px 14px rgba(0,0,0,.4);
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); transition: background .25s, color .25s; }
+
+  header {
+    background: linear-gradient(135deg, #6d28d9, #db2777);
+    color: white; padding: 12px 20px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+    position: sticky; top: 0; z-index: 10;
+  }
+  header h1 { font-size: 1.1rem; margin: 0; white-space: nowrap; }
+  header .doc-name {
+    background: rgba(255,255,255,.18); border: 1px solid rgba(255,255,255,.4);
+    color: white; padding: 6px 10px; border-radius: 8px; font-size: .95rem; width: 220px;
+  }
+  header .doc-name::placeholder { color: rgba(255,255,255,.7); }
+  .chip { background: rgba(255,255,255,.15); border-radius: 999px; padding: 4px 12px; font-size: .8rem; white-space: nowrap; }
+  header .spacer { flex: 1; }
+
+  .toolbar {
+    position: sticky; top: 58px; z-index: 9;
+    background: var(--surface); border-bottom: 1px solid var(--border);
+    padding: 8px 14px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center;
+  }
+  .btn {
+    border: 1px solid var(--border); background: var(--surface); border-radius: 8px;
+    min-width: 34px; height: 34px; padding: 0 10px; cursor: pointer;
+    font-size: .9rem; display: inline-flex; align-items: center; justify-content: center; gap: 4px;
+    transition: background .12s; color: inherit;
+  }
+  .btn:hover { background: #f3e8ff; }
+  body.dark .btn:hover { background: #4c1d95; }
+  .btn.active { background: #ede9fe; border-color: #8b5cf6; }
+  body.dark .btn.active { background: #5b21b6; }
+  select.btn { padding: 0 6px; }
+  input[type="color"] { width: 34px; height: 34px; padding: 2px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); cursor: pointer; }
+  .sep { width: 1px; height: 26px; background: var(--border); margin: 0 4px; }
+  .save-btn { background: var(--violet); color: white; border: none; font-weight: 600; }
+  .save-btn:hover { background: var(--violet-dark) !important; }
+  .eu-btn { background: var(--bleu-eu); color: white; border: none; }
+  .eu-btn:hover { background: #003ec1 !important; }
+  .ai-btn { background: var(--mistral); color: white; border: none; }
+  .ai-btn:hover { background: #d95d00 !important; }
+  .zoom-btn { min-width: 30px; padding: 0 6px; font-size: .8rem; }
+  .rec-btn { background: #dc2626; color: white; border: none; animation: pulse 1.2s infinite; }
+  @keyframes pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(220,38,38,.5); } 50% { box-shadow: 0 0 0 6px rgba(220,38,38,0); } }
+
+  main { display: flex; justify-content: center; padding: 24px 16px 90px; }
+  #pagesWrap { transition: transform .2s; transform-origin: top center; }
+  .page {
+    width: 794px; min-height: 1123px; background: var(--surface);
+    box-shadow: var(--shadow); border-radius: 4px;
+    padding: 72px 80px; margin: 0 auto 28px; outline: none;
+    font-size: 11.5pt; line-height: 1.6; color: var(--text);
+  }
+  #editor:focus { outline: none; }
+  #editor img.emote { height: 64px; vertical-align: middle; margin: 0 2px; }
+  #editor:empty::before { content: "Commence à écrire ici…"; color: #9ca3af; }
+  #editor h1 { font-size: 1.9em; } #editor h2 { font-size: 1.45em; } #editor h3 { font-size: 1.2em; }
+  #editor blockquote { border-left: 4px solid var(--violet); margin: 1em 0; padding: .3em 1em; color: var(--muted); background: rgba(109,40,217,.05); border-radius: 0 8px 8px 0; }
+  #editor pre { background: rgba(17,24,39,.06); padding: 12px 14px; border-radius: 8px; font-family: 'Cascadia Code', 'Courier New', monospace; font-size: .92em; overflow-x: auto; }
+  body.dark #editor pre { background: #111827; }
+  #editor hr { border: none; border-top: 2px solid var(--border); margin: 1.2em 0; }
+  #editor table { border-collapse: collapse; width: 100%; margin: 1em 0; }
+  #editor table td, #editor table th { border: 1px solid var(--border); padding: 8px 10px; min-width: 60px; }
+  #editor table th { background: rgba(109,40,217,.08); }
+  #editor img.content-img { max-width: 100%; border-radius: 8px; }
+  .cols-2 { column-count: 2; column-gap: 32px; } .cols-3 { column-count: 3; column-gap: 28px; }
+  .toc-box { border: 1px solid var(--border); border-radius: 10px; padding: 16px 22px; margin: 1em 0; background: rgba(109,40,217,.04); }
+  .toc-box h2 { margin: 0 0 .5em; } .toc-box a { display: block; color: var(--violet); text-decoration: none; padding: 2px 0; }
+  .page-num { text-align: center; color: var(--muted); font-size: .8rem; margin-top: -50px; user-select: none; }
+  #editor .note-span { background: #fef08a; border-bottom: 2px dotted #d97706; cursor: help; }
+  #editor ul.checklist { list-style: none; padding-left: 0; }
+  #editor ul.checklist li { padding-left: 1.6em; position: relative; }
+  #editor ul.checklist li::before { content: "☐"; position: absolute; left: 0; }
+  #editor ul.checklist li.done::before { content: "☑"; color: #16a34a; }
+  #editor del { color: var(--muted); }
+
+  #status { text-align: center; color: var(--muted); font-size: .85rem; padding: 10px; position: fixed; bottom: 0; left: 0; right: 0; background: var(--bg); border-top: 1px solid var(--border); z-index: 5; }
+
+  .panel {
+    position: fixed; top: 0; right: -400px; width: 360px; height: 100vh; overflow-y: auto;
+    background: var(--surface); box-shadow: -4px 0 20px rgba(0,0,0,.15); z-index: 20;
+    transition: right .25s ease; padding: 18px; border-left: 1px solid var(--border);
+  }
+  .panel.open { right: 0; }
+  .panel h2 { font-size: 1rem; margin: 0 0 12px; display: flex; align-items: center; justify-content: space-between; }
+  .panel .close { background: none; border: none; font-size: 1.3rem; cursor: pointer; color: inherit; }
+  .emote-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .emote-grid button {
+    background: none; border: 1px solid var(--border); border-radius: 10px; padding: 6px; cursor: pointer;
+    display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: .75rem; color: inherit;
+  }
+  .emote-grid button:hover { background: #ede9fe; }
+  .emote-grid img { height: 56px; width: 56px; }
+  .emoji-grid { display: flex; flex-wrap: wrap; gap: 4px; }
+  .emoji-grid button { background: none; border: none; font-size: 1.5rem; cursor: pointer; padding: 4px; border-radius: 6px; }
+
+  .issue { border: 1px solid var(--border); border-radius: 10px; padding: 10px; margin-bottom: 8px; font-size: .85rem; }
+  .issue .ctx { color: var(--muted); font-style: italic; }
+  .issue .sugg { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+  .issue .sugg button { background: var(--bleu-eu); color: white; border: none; border-radius: 6px; padding: 3px 10px; cursor: pointer; font-size: .8rem; }
+  .issue .rule { color: var(--muted); font-size: .72rem; margin-top: 4px; }
+
+  .find-row { display: flex; gap: 6px; margin-bottom: 8px; }
+  .find-row input { flex: 1; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border); font-size: .9rem; background: var(--surface); color: inherit; }
+
+  #outlineList { font-size: .9rem; }
+  #outlineList a { display: block; color: inherit; text-decoration: none; padding: 4px 6px; border-radius: 6px; cursor: pointer; }
+  #outlineList a:hover { background: #ede9fe; }
+  #outlineList a.h1 { font-weight: 700; } #outlineList a.h2 { padding-left: 20px; } #outlineList a.h3 { padding-left: 34px; color: var(--muted); }
+
+  .version-item { border: 1px solid var(--border); border-radius: 10px; padding: 10px; margin-bottom: 8px; font-size: .85rem; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .version-item button, .stat-row button { cursor: pointer; border: 1px solid var(--border); background: var(--surface); color: inherit; border-radius: 6px; padding: 4px 8px; font-size: .78rem; }
+
+  .doc-item { border: 1px solid var(--border); border-radius: 10px; padding: 10px; margin-bottom: 8px; font-size: .85rem; display: flex; align-items: center; justify-content: space-between; gap: 8px; cursor: pointer; }
+  .doc-item:hover { background: #ede9fe; }
+  .doc-item button { cursor: pointer; border: 1px solid #fca5a5; background: transparent; color: #dc2626; border-radius: 6px; padding: 3px 8px; font-size: .78rem; }
+
+  /* Assistant IA */
+  .ai-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .ai-actions .btn { justify-content: flex-start; }
+  .ai-input { width: 100%; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border); font-size: .9rem; background: var(--surface); color: inherit; margin-bottom: 8px; }
+  #aiResult { border: 1px solid var(--border); border-radius: 10px; padding: 12px; font-size: .88rem; margin-top: 10px; white-space: pre-wrap; display: none; }
+  .ai-hint { font-size: .78rem; color: var(--muted); }
+
+  /* Stats */
+  .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+  .stat-cell { border: 1px solid var(--border); border-radius: 10px; padding: 10px; text-align: center; }
+  .stat-cell b { display: block; font-size: 1.3rem; color: var(--violet); }
+  .stat-cell span { font-size: .75rem; color: var(--muted); }
+  .goal-bar { height: 10px; background: var(--border); border-radius: 999px; overflow: hidden; margin-top: 8px; }
+  .goal-bar > div { height: 100%; background: linear-gradient(90deg, var(--violet), var(--rose)); width: 0; transition: width .4s; }
+
+  /* Pomodoro */
+  .pomo { text-align: center; border: 1px solid var(--border); border-radius: 12px; padding: 14px; margin-bottom: 10px; }
+  .pomo b { font-size: 2rem; font-variant-numeric: tabular-nums; color: var(--violet); display: block; }
+  .podo-btns, .pomo-btns { display: flex; gap: 8px; margin-top: 8px; }
+  .pomo-btns .btn { flex: 1; }
+
+  /* Templates */
+  .tpl-item { border: 1px solid var(--border); border-radius: 10px; padding: 10px; margin-bottom: 8px; font-size: .85rem; cursor: pointer; }
+  .tpl-item:hover { background: #ede9fe; }
+
+  dialog { border: none; border-radius: 14px; padding: 24px; max-width: 400px; box-shadow: 0 20px 50px rgba(0,0,0,.25); color: inherit; background: var(--surface); }
+  dialog::backdrop { background: rgba(17,24,39,.45); }
+  dialog h2 { margin-top: 0; font-size: 1.1rem; }
+  dialog p { color: var(--muted); font-size: .95rem; }
+  dialog .row { display: flex; gap: 10px; justify-content: flex-end; margin-top: 18px; }
+  dialog .danger { background: #dc2626; color: white; }
+  dialog kbd { background: var(--border); border-radius: 4px; padding: 1px 6px; font-size: .8rem; }
+
+  .toast {
+    position: fixed; bottom: 54px; left: 50%; transform: translateX(-50%) translateY(80px);
+    background: #111827; color: white; padding: 10px 20px; border-radius: 999px;
+    font-size: .9rem; opacity: 0; transition: all .3s; z-index: 50; pointer-events: none;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+  body.zen header, body.zen .toolbar { opacity: .08; transition: opacity .3s; }
+  body.zen header:hover, body.zen .toolbar:hover { opacity: 1; }
+
+  @media print {
+    header, .toolbar, #status, .panel, .toast, .page-num { display: none !important; }
+    body { background: white; }
+    main { padding: 0; }
+    .page { box-shadow: none; margin: 0; width: auto; min-height: auto; padding: 0; border-radius: 0; }
+    #editor .note-span { background: transparent; border-bottom: none; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>✒️ Éditeur LM6 <span class="chip">V4 · 🇫🇷🇪🇺</span></h1>
+  <input id="docName" class="doc-name" placeholder="Nom du document…" />
+  <div class="spacer"></div>
+  <span class="chip" id="wordCount">0 mots</span>
+  <span class="chip" id="readTime">0 min</span>
+  <span class="chip" id="pageCount">1 page</span>
+</header>
+
+<div class="toolbar">
+  <button class="btn" data-cmd="bold" title="Gras (Ctrl+B)"><b>G</b></button>
+  <button class="btn" data-cmd="italic" title="Italique (Ctrl+I)"><i>I</i></button>
+  <button class="btn" data-cmd="underline" title="Souligné (Ctrl+U)"><u>U</u></button>
+  <button class="btn" data-cmd="strikeThrough" title="Barré"><s>B</s></button>
+  <button class="btn" data-cmd="superscript" title="Exposant">x²</button>
+  <button class="btn" data-cmd="subscript" title="Indice">x₂</button>
+  <div class="sep"></div>
+  <select class="btn" id="fontFamily" title="Police">
+    <option value="">Police…</option>
+    <option value="Segoe UI">Segoe UI</option><option value="Georgia">Georgia</option>
+    <option value="Times New Roman">Times New Roman</option><option value="Arial">Arial</option>
+    <option value="Courier New">Courier New</option><option value="Trebuchet MS">Trebuchet MS</option>
+  </select>
+  <select class="btn" id="fontSize" title="Taille">
+    <option value="">Taille…</option>
+    <option value="1">Très petit</option><option value="2">Petit</option><option value="3">Normal</option>
+    <option value="5">Grand</option><option value="6">Très grand</option><option value="7">Énorme</option>
+  </select>
+  <select class="btn" id="lineSpacing" title="Interligne">
+    <option value="">Interligne…</option>
+    <option value="1.15">Serré</option><option value="1.6">Normal</option><option value="2">Aéré</option>
+  </select>
+  <input type="color" id="textColor" value="#111827" title="Couleur du texte" />
+  <input type="color" id="hiliteColor" value="#fef08a" title="Surlignage" />
+  <div class="sep"></div>
+  <button class="btn" data-block="h1" title="Titre 1">T1</button>
+  <button class="btn" data-block="h2" title="Titre 2">T2</button>
+  <button class="btn" data-block="h3" title="Titre 3">T3</button>
+  <button class="btn" data-block="p" title="Paragraphe">¶</button>
+  <button class="btn" data-block="blockquote" title="Citation">❝</button>
+  <button class="btn" data-cmd="insertUnorderedList" title="Liste à puces">•≡</button>
+  <button class="btn" data-cmd="insertOrderedList" title="Liste numérotée">1≡</button>
+  <button class="btn" id="btnChecklist" title="Liste de tâches">☑</button>
+  <div class="sep"></div>
+  <button class="btn" id="btnTable" title="Insérer un tableau">▦</button>
+  <button class="btn" id="btnImg" title="Insérer une image">🖼️</button>
+  <button class="btn" id="btnHr" title="Ligne horizontale">―</button>
+  <button class="btn" id="btnCode" title="Bloc de code">&lt;/&gt;</button>
+  <button class="btn" id="btnLink" title="Lien (Ctrl+K)">🔗</button>
+  <button class="btn" id="btnNote" title="Annotation surlignée">💬</button>
+  <button class="btn" id="btnCols" title="Colonnes (2/3/1)">▥</button>
+  <div class="sep"></div>
+  <button class="btn" data-cmd="undo" title="Annuler (Ctrl+Z)">↶</button>
+  <button class="btn" data-cmd="redo" title="Rétablir (Ctrl+Y)">↷</button>
+  <div class="spacer"></div>
+  <button class="btn" id="btnOutline" title="Plan du document">☰ Plan</button>
+  <button class="btn" id="btnStats" title="Statistiques & objectif">📊 Stats</button>
+  <button class="btn" id="btnEmotes" title="Émotes & emojis (Ctrl+E)">😄</button>
+  <button class="btn" id="btnFind" title="Rechercher & remplacer (Ctrl+F)">🔍</button>
+  <button class="btn eu-btn" id="btnCheck" title="Correction — LanguageTool 🇩🇪🇪🇺">✓ Corriger (EU)</button>
+  <button class="btn ai-btn" id="btnAI" title="Assistant IA — Mistral 🇫🇷🇪🇺">✨ IA (Mistral)</button>
+  <button class="btn" id="btnDictate" title="Dicter (reconnaissance vocale locale)">🎙️ Dicter</button>
+  <button class="btn" id="btnSpeak" title="Lire à voix haute (voix locale)">🔊</button>
+  <button class="btn" id="btnZen" title="Mode focus">🧘</button>
+  <button class="btn" id="btnTheme" title="Mode sombre / clair">🌙</button>
+  <div class="sep"></div>
+  <button class="btn" id="btnTemplates" title="Modèles de documents">📋 Modèles</button>
+  <button class="btn" id="btnLib" title="Bibliothèque">📚 Docs</button>
+  <button class="btn" id="btnVersions" title="Historique de versions">🕘 Versions</button>
+  <button class="btn" id="btnPrint" title="Imprimer / PDF (Ctrl+P)">🖨️ PDF</button>
+  <button class="btn" id="btnOpen" title="Ouvrir un fichier .lm6doc / .md / .txt">📂 Ouvrir</button>
+  <button class="btn" id="btnExport" title="Exporter HTML / Markdown / TXT">🌐 Export</button>
+  <button class="btn save-btn" id="btnSave" title="Enregistrer (Ctrl+S)">💾</button>
+  <div class="sep"></div>
+  <button class="btn zoom-btn" id="zoomOut">−</button>
+  <span class="chip" id="zoomLabel">100 %</span>
+  <button class="btn zoom-btn" id="zoomIn">+</button>
+  <button class="btn" id="btnHelp" title="Raccourcis clavier">⌨️</button>
+</div>
+
+<main><div id="pagesWrap">
+  <div class="page" id="editor" contenteditable="true" spellcheck="true"></div>
+  <div class="page-num" id="pageNum">1</div>
+</div></main>
+
+<div id="status">Bienvenue dans la V4 🇫🇷🇪🇺 — Correction LanguageTool (🇩🇪🇪🇺), IA Mistral (🇫🇷🇪🇺, optionnelle), le reste est 100 % local.</div>
+
+<aside class="panel" id="emotePanel">
+  <h2>😄 Émotes Furina <button class="close" data-close="emotePanel">✕</button></h2>
+  <div class="emote-grid" id="furinaGrid"></div>
+  <h2 style="margin-top:18px">😀 Emojis <button class="close" data-close="emotePanel">✕</button></h2>
+  <div class="emoji-grid" id="emojiGrid"></div>
+  <h2 style="margin-top:18px">⭐ Mes émotes perso</h2>
+  <p style="font-size:.8rem;color:var(--muted)">Ajoute tes propres images. Elles restent dans ton navigateur.</p>
+  <button class="btn" id="btnAddEmote" style="width:100%">➕ Ajouter une émote</button>
+  <input type="file" id="emoteFile" accept="image/*" multiple hidden />
+  <div class="emote-grid" id="customGrid" style="margin-top:10px"></div>
+</aside>
+
+<aside class="panel" id="findPanel">
+  <h2>🔍 Rechercher & remplacer <button class="close" data-close="findPanel">✕</button></h2>
+  <div class="find-row"><input id="findInput" placeholder="Rechercher…" /></div>
+  <div class="find-row"><input id="replaceInput" placeholder="Remplacer par…" /></div>
+  <div style="display:flex;gap:8px">
+    <button class="btn" id="btnReplaceOne" style="flex:1">Remplacer</button>
+    <button class="btn" id="btnReplaceAll" style="flex:1">Tout remplacer</button>
+  </div>
+  <p id="findInfo" style="font-size:.8rem;color:var(--muted)"></p>
+</aside>
+
+<aside class="panel" id="checkPanel">
+  <h2>✓ Correction française <button class="close" data-close="checkPanel">✕</button></h2>
+  <p style="font-size:.8rem;color:var(--muted)">API <b>LanguageTool</b> (🇩🇪🇪🇺) — aucune donnée hors Europe.</p>
+  <div id="issues"></div>
+</aside>
+
+<aside class="panel" id="aiPanel">
+  <h2>✨ Assistant IA Mistral <button class="close" data-close="aiPanel">✕</button></h2>
+  <p style="font-size:.8rem;color:var(--muted)">API <b>Mistral AI</b> (🇫🇷🇪🇺). Ta clé reste dans ce navigateur — elle n'est envoyée qu'à api.mistral.ai. <b>Optionnelle</b> : tout le reste de l'éditeur fonctionne sans.</p>
+  <input class="ai-input" id="aiKey" type="password" placeholder="Clé API Mistral (console.mistral.ai)…" />
+  <button class="btn" id="btnSaveKey" style="width:100%;margin-bottom:12px">💾 Enregistrer la clé localement</button>
+  <div class="ai-actions">
+    <button class="btn ai-action" data-action="improve">✨ Améliorer</button>
+    <button class="btn ai-action" data-action="summary">📝 Résumer</button>
+    <button class="btn ai-action" data-action="continue">➡️ Continuer</button>
+    <button class="btn ai-action" data-action="shorten">✂️ Raccourcir</button>
+    <button class="btn ai-action" data-action="expand">📖 Développer</button>
+    <button class="btn ai-action" data-action="tone">🎭 Autre ton</button>
+    <button class="btn ai-action" data-action="translate">🌍 Traduire</button>
+    <button class="btn ai-action" data-action="ideas">💡 Idées</button>
+  </div>
+  <select class="btn" id="aiTarget" style="width:100%;margin-top:10px">
+    <option value="selection">Sur le texte sélectionné</option>
+    <option value="document">Sur tout le document</option>
+  </select>
+  <div id="aiResult"></div>
+  <div style="display:flex;gap:8px;margin-top:10px">
+    <button class="btn" id="btnAiInsert" style="flex:1">⬇️ Insérer le résultat</button>
+    <button class="btn" id="btnAiReplace" style="flex:1">🔄 Remplacer la sélection</button>
+  </div>
+</aside>
+
+<aside class="panel" id="statsPanel">
+  <h2>📊 Statistiques <button class="close" data-close="statsPanel">✕</button></h2>
+  <div class="stat-grid">
+    <div class="stat-cell"><b id="stWords">0</b><span>mots</span></div>
+    <div class="stat-cell"><b id="stChars">0</b><span>caractères</span></div>
+    <div class="stat-cell"><b id="stSentences">0</b><span>phrases</span></div>
+    <div class="stat-cell"><b id="stParas">0</b><span>paragraphes</span></div>
+    <div class="stat-cell"><b id="stRead">0 min</b><span>lecture</span></div>
+    <div class="stat-cell"><b id="stSpeak">0 min</b><span>à voix haute</span></div>
+  </div>
+  <h2 style="margin-top:16px">🎯 Objectif d'écriture</h2>
+  <div style="display:flex;gap:8px">
+    <input class="ai-input" id="goalInput" type="number" min="0" placeholder="Objectif de mots…" style="margin-bottom:0" />
+    <button class="btn" id="btnGoal">OK</button>
+  </div>
+  <div class="goal-bar"><div id="goalBar"></div></div>
+  <p id="goalText" style="font-size:.8rem;color:var(--muted);margin-top:6px"></p>
+  <h2 style="margin-top:16px">🍅 Pomodoro</h2>
+  <div class="pomo">
+    <b id="pomoTime">25:00</b>
+    <span style="font-size:.8rem;color:var(--muted)" id="pomoPhase">Prêt à écrire</span>
+    <div class="pomo-btns">
+      <button class="btn" id="pomoStart">▶</button>
+      <button class="btn" id="pomoReset">↺</button>
+    </div>
+  </div>
+</aside>
+
+<aside class="panel" id="outlinePanel">
+  <h2>☰ Plan du document <button class="close" data-close="outlinePanel">✕</button></h2>
+  <div id="outlineList"></div>
+  <button class="btn" id="btnToc" style="width:100%;margin-top:14px">📑 Insérer un sommaire ici</button>
+</aside>
+
+<aside class="panel" id="versionsPanel">
+  <h2>🕘 Historique <button class="close" data-close="versionsPanel">✕</button></h2>
+  <button class="btn" id="btnSnapshot" style="width:100%;margin-bottom:12px">📸 Créer une version maintenant</button>
+  <div id="versionList"></div>
+</aside>
+
+<aside class="panel" id="libPanel">
+  <h2>📚 Mes documents <button class="close" data-close="libPanel">✕</button></h2>
+  <button class="btn" id="btnNewDoc" style="width:100%;margin-bottom:12px">✨ Nouveau document</button>
+  <div id="docList"></div>
+</aside>
+
+<aside class="panel" id="templatesPanel">
+  <h2>📋 Modèles <button class="close" data-close="templatesPanel">✕</button></h2>
+  <p style="font-size:.8rem;color:var(--muted)">Un clic insère une structure prête à remplir.</p>
+  <div id="tplList"></div>
+</aside>
+
+<input type="file" id="fileInput" accept=".lm6doc,.md,.txt,.markdown" hidden />
+<input type="file" id="imgInput" accept="image/*" hidden />
+<dialog id="confirmDialog">
+  <h2>Écraser ce document ?</h2>
+  <p>Le document actuel n'est pas enregistré. Continuer va perdre les modifications non sauvegardées.</p>
+  <div class="row">
+    <button class="btn" id="dlgCancel">Annuler</button>
+    <button class="btn danger" id="dlgConfirm">Continuer</button>
+  </div>
+</dialog>
+<dialog id="tableDialog">
+  <h2>Insérer un tableau</h2>
+  <p>Lignes : <input id="tblRows" type="number" value="3" min="1" max="30" style="width:60px" />
+     Colonnes : <input id="tblCols" type="number" value="3" min="1" max="10" style="width:60px" /></p>
+  <div class="row">
+    <button class="btn" id="tblCancel">Annuler</button>
+    <button class="btn save-btn" id="tblOk">Insérer</button>
+  </div>
+</dialog>
+<dialog id="exportDialog">
+  <h2>🌐 Exporter</h2>
+  <p>Choisis le format :</p>
+  <div class="row" style="justify-content:center;flex-wrap:wrap">
+    <button class="btn" data-exp="html">📄 HTML</button>
+    <button class="btn" data-exp="md">📝 Markdown (.md)</button>
+    <button class="btn" data-exp="txt">📃 Texte (.txt)</button>
+    <button class="btn" data-exp="lm6doc">💾 .lm6doc</button>
+  </div>
+</dialog>
+<dialog id="helpDialog">
+  <h2>⌨️ Raccourcis</h2>
+  <p style="line-height:2">
+    <kbd>Ctrl+S</kbd> Enregistrer · <kbd>Ctrl+F</kbd> Rechercher · <kbd>Ctrl+E</kbd> Émotes<br>
+    <kbd>Ctrl+K</kbd> Lien · <kbd>Ctrl+Entrée</kbd> Saut de page · <kbd>Ctrl+P</kbd> PDF<br>
+    <kbd>Ctrl+I</kbd>/<kbd>Ctrl+B</kbd>/<kbd>Ctrl+U</kbd> Gras, italique, souligné<br>
+    <kbd>Tab</kbd> Indentation · clic droit sur image : supprimer
+  </p>
+  <div class="row"><button class="btn" id="helpClose">Fermer</button></div>
+</dialog>
+<div class="toast" id="toast"></div>
+
+<script>
+(function () {
+  const EXT = "lm6doc";
+  const editor = document.getElementById("editor");
+  const docName = document.getElementById("docName");
+  const status = document.getElementById("status");
+  const toast = document.getElementById("toast");
+  const fileInput = document.getElementById("fileInput");
+  const imgInput = document.getElementById("imgInput");
+  const dialog = document.getElementById("confirmDialog");
+  let dirty = false, zoom = 1, colState = 0, goal = 0;
+  let currentDocId = null;
+  let aiLastResult = "";
+
+  function setStatus(msg) { status.textContent = msg; }
+  function showToast(msg) {
+    toast.textContent = msg; toast.classList.add("show");
+    setTimeout(function () { toast.classList.remove("show"); }, 2200);
+  }
+  function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+  function markDirty() { dirty = true; setStatus("Modifications non enregistrées…"); scheduleAutosave(); updateCounts(); }
+
+  /* ============ STICKERS FURINA (SVG intégrés, zéro réseau) ============ */
+  function furinaSVG(expr) {
+    const eyes = {
+      happy: '<circle cx="38" cy="52" r="5" fill="#4c6ef5"/><circle cx="62" cy="52" r="5" fill="#4c6ef5"/><path d="M32 44 Q38 39 44 44" stroke="#2b3a67" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M56 44 Q62 39 68 44" stroke="#2b3a67" stroke-width="2" fill="none" stroke-linecap="round"/>',
+      crying: '<path d="M33 50 Q38 44 43 50" stroke="#2b3a67" stroke-width="2.5" fill="none" stroke-linecap="round"/><path d="M57 50 Q62 44 67 50" stroke="#2b3a67" stroke-width="2.5" fill="none" stroke-linecap="round"/><path d="M36 56 q3 10 0 14" stroke="#4cc9f0" stroke-width="3" fill="#4cc9f0" stroke-linecap="round"/><path d="M64 56 q-3 10 0 14" stroke="#4cc9f0" stroke-width="3" fill="#4cc9f0" stroke-linecap="round"/>',
+      smug: '<path d="M32 52 Q38 47 44 54" stroke="#2b3a67" stroke-width="2.5" fill="none" stroke-linecap="round"/><path d="M56 54 Q62 47 68 52" stroke="#2b3a67" stroke-width="2.5" fill="none" stroke-linecap="round"/><path d="M48 62 q8 5 14 -2" stroke="#c2255c" stroke-width="2.5" fill="none" stroke-linecap="round"/>',
+      shocked: '<circle cx="38" cy="52" r="7" fill="white" stroke="#2b3a67" stroke-width="2"/><circle cx="38" cy="52" r="3" fill="#2b3a67"/><circle cx="62" cy="52" r="7" fill="white" stroke="#2b3a67" stroke-width="2"/><circle cx="62" cy="52" r="3" fill="#2b3a67"/><ellipse cx="50" cy="66" rx="5" ry="7" fill="#c2255c"/>',
+      sleepy: '<path d="M32 52 Q38 56 44 52" stroke="#2b3a67" stroke-width="2.5" fill="none" stroke-linecap="round"/><path d="M56 52 Q62 56 68 52" stroke="#2b3a67" stroke-width="2.5" fill="none" stroke-linecap="round"/><path d="M46 64 q4 3 8 0" stroke="#c2255c" stroke-width="2" fill="none" stroke-linecap="round"/>',
+      angry: '<path d="M32 46 L44 52" stroke="#2b3a67" stroke-width="2.5" stroke-linecap="round"/><path d="M68 46 L56 52" stroke="#2b3a67" stroke-width="2.5" stroke-linecap="round"/><circle cx="38" cy="56" r="3" fill="#2b3a67"/><circle cx="62" cy="56" r="3" fill="#2b3a67"/><path d="M44 68 L56 68" stroke="#c2255c" stroke-width="2.5" stroke-linecap="round"/>'
+    }[expr];
+    const mouth = {
+      happy: '<path d="M42 62 Q50 70 58 62" stroke="#c2255c" stroke-width="2.5" fill="none" stroke-linecap="round"/>',
+      crying: '<path d="M45 68 Q50 64 55 68" stroke="#c2255c" stroke-width="2.5" fill="none" stroke-linecap="round"/>',
+      smug: '', shocked: '', sleepy: '', angry: ''
+    }[expr];
+    return "data:image/svg+xml," + encodeURIComponent(
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">' +
+      '<circle cx="50" cy="52" r="34" fill="#fdf6ff" stroke="#e9d5ff" stroke-width="2"/>' +
+      '<path d="M18 44 Q14 14 50 16 Q86 14 82 44 Q74 30 62 32 Q70 22 56 24 Q60 16 46 22 Q40 14 36 26 Q26 24 30 34 Q22 32 18 44" fill="#7cc7e8" stroke="#5aa7cc" stroke-width="1.5"/>' +
+      '<path d="M20 40 Q30 20 48 18" stroke="#a5e0f5" stroke-width="4" fill="none" stroke-linecap="round"/>' +
+      '<circle cx="26" cy="60" r="5" fill="#ffd6e8" opacity=".8"/><circle cx="74" cy="60" r="5" fill="#ffd6e8" opacity=".8"/>' +
+      eyes + mouth + '</svg>'
+    );
+  }
+  const furinaEmotes = [
+    { label: "Contente", svg: furinaSVG("happy") },
+    { label: "Drame 🥲", svg: furinaSVG("crying") },
+    { label: "Fière", svg: furinaSVG("smug") },
+    { label: "Choquée", svg: furinaSVG("shocked") },
+    { label: "Endormie", svg: furinaSVG("sleepy") },
+    { label: "Fâchée", svg: furinaSVG("angry") }
+  ];
+  const emojis = "😀 😂 🥲 😍 😎 🤔 😭 😡 🥳 😴 🤝 👍 ✨ 💜 🔥 ⚡ 🌊 🎭 🍰 ☕ 🎩 🥐 💯 🎉".split(" ");
+
+  /* ============ STOCKAGE LOCAL ============ */
+  function lsGet(k, dflt) { try { return JSON.parse(localStorage.getItem(k)) ?? dflt; } catch (e) { return dflt; } }
+  function lsSet(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+
+  let autosaveTimer = null;
+  function scheduleAutosave() {
+    clearTimeout(autosaveTimer);
+    autosaveTimer = setTimeout(function () {
+      const entry = { id: currentDocId || uid(), name: docName.value, html: editor.innerHTML, at: Date.now() };
+      currentDocId = entry.id;
+      lsSet("lm6doc-autosave", entry);
+      const docs = lsGet("lm6doc-library", {});
+      docs[entry.id] = { name: entry.name, html: entry.html, at: entry.at };
+      lsSet("lm6doc-library", docs);
+      const vs = lsGet("lm6doc-versions", []);
+      const last = vs[vs.length - 1];
+      if (!last || Date.now() - last.at > 5 * 60 * 1000) pushVersion("auto");
+    }, 800);
+  }
+  function pushVersion(kind) {
+    const vs = lsGet("lm6doc-versions", []);
+    vs.push({ id: uid(), kind: kind, name: docName.value, html: editor.innerHTML, at: Date.now() });
+    while (vs.length > 12) vs.shift();
+    lsSet("lm6doc-versions", vs);
+  }
+  (function restore() {
+    const saved = lsGet("lm6doc-autosave", null);
+    if (saved && saved.html) {
+      editor.innerHTML = saved.html;
+      docName.value = saved.name || "";
+      currentDocId = saved.id || uid();
+      setStatus("Document précédent restauré automatiquement ✓");
+    } else { currentDocId = uid(); }
+    goal = lsGet("lm6doc-goal", 0);
+    if (goal) document.getElementById("goalInput").value = goal;
+  })();
+
+  /* ============ MISE EN FORME ============ */
+  document.querySelectorAll(".btn[data-cmd]").forEach(function (btn) {
+    btn.addEventListener("mousedown", function (e) { e.preventDefault(); });
+    btn.addEventListener("click", function () {
+      document.execCommand(btn.dataset.cmd, false, null);
+      editor.focus(); markDirty();
+    });
+  });
+  document.querySelectorAll(".btn[data-block]").forEach(function (btn) {
+    btn.addEventListener("mousedown", function (e) { e.preventDefault(); });
+    btn.addEventListener("click", function () {
+      document.execCommand("formatBlock", false, "<" + btn.dataset.block + ">");
+      editor.focus(); markDirty();
+    });
+  });
+  document.getElementById("fontFamily").addEventListener("change", function () {
+    if (!this.value) return;
+    document.execCommand("fontName", false, this.value);
+    this.selectedIndex = 0; editor.focus(); markDirty();
+  });
+  document.getElementById("fontSize").addEventListener("change", function () {
+    if (!this.value) return;
+    document.execCommand("fontSize", false, this.value);
+    this.selectedIndex = 0; editor.focus(); markDirty();
+  });
+  document.getElementById("lineSpacing").addEventListener("change", function () {
+    if (!this.value) return;
+    const sel = window.getSelection();
+    let el = sel.anchorNode ? (sel.anchorNode.nodeType === 1 ? sel.anchorNode : sel.anchorNode.parentElement) : editor;
+    let block = el && el.closest ? (el.closest("p,h1,h2,h3,li,blockquote") || editor) : editor;
+    block.style.lineHeight = this.value;
+    this.selectedIndex = 0; editor.focus(); markDirty();
+  });
+  document.getElementById("textColor").addEventListener("input", function () {
+    document.execCommand("foreColor", false, this.value); editor.focus(); markDirty();
+  });
+  document.getElementById("hiliteColor").addEventListener("input", function () {
+    document.execCommand("hiliteColor", false, this.value); editor.focus(); markDirty();
+  });
+
+  /* ============ INSERTIONS ============ */
+  document.getElementById("btnTable").addEventListener("click", function () {
+    document.getElementById("tableDialog").showModal();
+  });
+  document.getElementById("tblCancel").addEventListener("click", function () { document.getElementById("tableDialog").close(); });
+  document.getElementById("tblOk").addEventListener("click", function () {
+    document.getElementById("tableDialog").close();
+    const r = parseInt(document.getElementById("tblRows").value, 10) || 3;
+    const c = parseInt(document.getElementById("tblCols").value, 10) || 3;
+    let html = "<table><thead><tr>";
+    for (let i = 0; i < c; i++) html += "<th>Colonne " + (i + 1) + "</th>";
+    html += "</tr></thead><tbody>";
+    for (let i = 1; i < r; i++) { html += "<tr>"; for (let j = 0; j < c; j++) html += "<td>&nbsp;</td>"; html += "</tr>"; }
+    html += "</tbody></table><p>&nbsp;</p>";
+    document.execCommand("insertHTML", false, html);
+    editor.focus(); markDirty();
+  });
+  document.getElementById("btnImg").addEventListener("click", function () { imgInput.click(); });
+  imgInput.addEventListener("change", function () {
+    const f = this.files[0]; if (!f) return;
+    const reader = new FileReader();
+    reader.onload = function () {
+      document.execCommand("insertHTML", false, '<img class="content-img" src="' + reader.result + '" alt="image" /><p>&nbsp;</p>');
+      editor.focus(); markDirty();
+    };
+    reader.readAsDataURL(f);
+    this.value = "";
+  });
+  document.getElementById("btnHr").addEventListener("click", function () {
+    document.execCommand("insertHTML", false, "<hr><p>&nbsp;</p>"); editor.focus(); markDirty();
+  });
+  document.getElementById("btnCode").addEventListener("click", function () {
+    const sel = window.getSelection().toString();
+    document.execCommand("insertHTML", false, "<pre>" + (sel ? sel.replace(/</g, "&lt;") : "// ton code ici…") + "</pre><p>&nbsp;</p>");
+    editor.focus(); markDirty();
+  });
+  document.getElementById("btnLink").addEventListener("click", function () {
+    const url = prompt("Adresse du lien :", "https://");
+    if (!url) return;
+    document.execCommand("createLink", false, url);
+    editor.focus(); markDirty();
+  });
+  document.getElementById("btnNote").addEventListener("click", function () {
+    const sel = window.getSelection().toString();
+    if (!sel) { showToast("Sélectionne d'abord un passage 💬"); return; }
+    const note = prompt("Annotation (masquée à l'impression) :", "");
+    if (note === null) return;
+    document.execCommand("insertHTML", false, '<span class="note-span" title="' + note.replace(/"/g, "&quot;") + '">' + sel + "</span>");
+    editor.focus(); markDirty();
+  });
+  document.getElementById("btnChecklist").addEventListener("click", function () {
+    const sel = window.getSelection().toString();
+    const items = sel ? sel.split(/\n+/).filter(Boolean) : ["Tâche 1", "Tâche 2"];
+    let html = '<ul class="checklist">';
+    items.forEach(function (t) { html += "<li>" + t + "</li>"; });
+    html += "</ul><p>&nbsp;</p>";
+    document.execCommand("insertHTML", false, html);
+    editor.focus(); markDirty();
+  });
+  editor.addEventListener("click", function (e) {
+    const li = e.target.closest ? e.target.closest("ul.checklist li") : null;
+    if (li) { li.classList.toggle("done"); markDirty(); }
+  });
+  document.getElementById("btnCols").addEventListener("click", function () {
+    colState = (colState + 1) % 3;
+    editor.classList.remove("cols-2", "cols-3");
+    if (colState === 1) editor.classList.add("cols-2");
+    if (colState === 2) editor.classList.add("cols-3");
+    showToast(colState === 1 ? "2 colonnes 📰" : colState === 2 ? "3 colonnes 📰" : "1 colonne");
+    markDirty();
+  });
+  editor.addEventListener("contextmenu", function (e) {
+    const img = e.target.closest ? e.target.closest("img.content-img") : null;
+    if (!img) return;
+    e.preventDefault();
+    if (confirm("Supprimer cette image ?")) { img.remove(); markDirty(); }
+  });
+
+  /* ============ COMPTEURS & STATS ============ */
+  function getStats() {
+    const text = editor.innerText.trim();
+    const words = text ? text.split(/\s+/).filter(Boolean).length : 0;
+    const sentences = text ? (text.match(/[.!?…]+(\s|$)/g) || []).length : 0;
+    const paras = text ? text.split(/\n\s*\n|\n/).filter(function (l) { return l.trim(); }).length : 0;
+    return { words: words, chars: text.length, sentences: sentences, paras: paras };
+  }
+  function updateCounts() {
+    const s = getStats();
+    document.getElementById("wordCount").textContent = s.words + " mots";
+    document.getElementById("readTime").textContent = Math.max(1, Math.round(s.words / 200)) + " min";
+    const pages = Math.max(1, Math.ceil((editor.scrollHeight || 1123) / 1123));
+    document.getElementById("pageCount").textContent = pages + (pages > 1 ? " pages" : " page");
+    document.getElementById("pageNum").textContent = pages + (pages > 1 ? " pages — Imprimer/PDF pour paginer" : "");
+    // stats panel
+    document.getElementById("stWords").textContent = s.words;
+    document.getElementById("stChars").textContent = s.chars;
+    document.getElementById("stSentences").textContent = s.sentences;
+    document.getElementById("stParas").textContent = s.paras;
+    document.getElementById("stRead").textContent = Math.max(1, Math.round(s.words / 200)) + " min";
+    document.getElementById("stSpeak").textContent = Math.max(1, Math.round(s.words / 130)) + " min";
+    if (goal > 0) {
+      const pct = Math.min(100, Math.round(s.words / goal * 100));
+      document.getElementById("goalBar").style.width = pct + "%";
+      document.getElementById("goalText").textContent = s.words + " / " + goal + " mots (" + pct + " %)" + (pct >= 100 ? " — objectif atteint ! 🎉" : "");
+    }
+    renderOutline();
+  }
+  document.getElementById("btnGoal").addEventListener("click", function () {
+    goal = parseInt(document.getElementById("goalInput").value, 10) || 0;
+    lsSet("lm6doc-goal", goal);
+    updateCounts();
+    showToast(goal ? "Objectif : " + goal + " mots 🎯" : "Objectif désactivé");
+  });
+
+  /* ============ PLAN & SOMMAIRE ============ */
+  function getHeadings() { return Array.from(editor.querySelectorAll("h1, h2, h3")); }
+  function renderOutline() {
+    const list = document.getElementById("outlineList");
+    const hs = getHeadings();
+    list.innerHTML = hs.length ? "" : "<p style='font-size:.85rem;color:var(--muted)'>Ajoute des titres (T1, T2, T3) pour voir le plan 📑</p>";
+    hs.forEach(function (h) {
+      const a = document.createElement("a");
+      a.className = h.tagName.toLowerCase();
+      a.textContent = (h.tagName === "H1" ? "· " : h.tagName === "H2" ? "· · " : "· · · ") + (h.textContent.trim() || "(sans titre)");
+      a.addEventListener("mousedown", function (e) { e.preventDefault(); });
+      a.addEventListener("click", function () { h.scrollIntoView({ behavior: "smooth", block: "center" }); });
+      list.appendChild(a);
+    });
+  }
+  document.getElementById("btnToc").addEventListener("click", function () {
+    const hs = getHeadings().filter(function (h) { return h.textContent.trim(); });
+    if (!hs.length) { showToast("Ajoute d'abord des titres 🙂"); return; }
+    let html = '<div class="toc-box" contenteditable="false"><h2>Sommaire</h2>';
+    hs.forEach(function (h, i) { h.id = "sec-" + i; html += '<a href="#' + h.id + '">' + h.textContent.trim() + "</a>"; });
+    html += "</div><p>&nbsp;</p>";
+    document.execCommand("insertHTML", false, html);
+    markDirty();
+  });
+
+  /* ============ VERSIONS ============ */
+  function renderVersions() {
+    const list = document.getElementById("versionList");
+    const vs = lsGet("lm6doc-versions", []).slice().reverse();
+    list.innerHTML = vs.length ? "" : "<p style='font-size:.85rem;color:var(--muted)'>Aucune version pour l'instant.</p>";
+    vs.forEach(function (v) {
+      const d = document.createElement("div");
+      d.className = "version-item";
+      const t = new Date(v.at).toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" });
+      d.innerHTML = "<span>🕘 " + t + "<br><b>" + (v.name || "sans titre") + "</b> <small>(" + v.kind + ")</small></span>";
+      const btn = document.createElement("button");
+      btn.textContent = "Restaurer";
+      btn.addEventListener("click", function () {
+        editor.innerHTML = v.html; docName.value = v.name || "";
+        markDirty(); showToast("Version restaurée ⏪");
+      });
+      d.appendChild(btn);
+      list.appendChild(d);
+    });
+  }
+  document.getElementById("btnSnapshot").addEventListener("click", function () {
+    pushVersion("manuelle"); renderVersions(); showToast("Version créée 📸");
+  });
+
+  /* ============ BIBLIOTHÈQUE ============ */
+  function renderLibrary() {
+    const list = document.getElementById("docList");
+    const docs = lsGet("lm6doc-library", {});
+    const ids = Object.keys(docs).sort(function (a, b) { return docs[b].at - docs[a].at; });
+    list.innerHTML = ids.length ? "" : "<p style='font-size:.85rem;color:var(--muted)'>Bibliothèque vide pour l'instant.</p>";
+    ids.forEach(function (id) {
+      const doc = docs[id];
+      const d = document.createElement("div");
+      d.className = "doc-item";
+      d.innerHTML = "<span>📄 <b>" + (doc.name || "sans titre") + "</b><br><small>" + new Date(doc.at).toLocaleDateString("fr-FR") + "</small></span>";
+      const del = document.createElement("button");
+      del.textContent = "✕";
+      del.addEventListener("click", function (e) {
+        e.stopPropagation();
+        if (confirm("Supprimer « " + (doc.name || "sans titre") + " » ?")) {
+          delete docs[id]; lsSet("lm6doc-library", docs); renderLibrary();
+        }
+      });
+      d.appendChild(del);
+      d.addEventListener("click", function () {
+        currentDocId = id;
+        editor.innerHTML = doc.html; docName.value = doc.name || "";
+        dirty = false; updateCounts();
+        setStatus("« " + (doc.name || "sans titre") + " » ouvert ✓");
+      });
+      list.appendChild(d);
+    });
+  }
+  document.getElementById("btnNewDoc").addEventListener("click", function () {
+    if (dirty && !confirm("Le document actuel n'est pas enregistré. Créer un nouveau document quand même ?")) return;
+    currentDocId = uid();
+    editor.innerHTML = ""; docName.value = "";
+    dirty = false; updateCounts(); setStatus("Nouveau document ✨");
+  });
+
+  /* ============ MODÈLES DE DOCUMENTS ============ */
+  const templates = [
+    { name: "✉️ Lettre formelle", html: "<p style='text-align:right'>[Ta ville], le [date]</p><p>&nbsp;</p><h2>Objet : [objet]</h2><p>Madame, Monsieur,</p><p>&nbsp;</p><p>[Corps de la lettre]</p><p>&nbsp;</p><p>Dans l'attente de votre réponse, je vous prie d'agréer, Madame, Monsieur, l'expression de mes salutations distinguées.</p><p>&nbsp;</p><p><b>[Prénom Nom]</b><br>[Adresse]<br>[Téléphone · e-mail]</p>" },
+    { name: "💼 CV", html: "<h1 style='text-align:center'>[Prénom NOM]</h1><p style='text-align:center'>[Titre professionnel]</p><hr><h2>Expérience</h2><p><b>[Poste]</b> — [Entreprise] ([dates])<br>[Description]</p><h2>Formation</h2><p><b>[Diplôme]</b> — [École] ([dates])</p><h2>Compétences</h2><p>[Compétence 1] · [Compétence 2] · [Compétence 3]</p>" },
+    { name: "📊 Rapport", html: "<h1>[Titre du rapport]</h1><p><small>[Date] — [Auteur]</small></p><h2>Sommaire</h2><h2>1. Introduction</h2><p>&nbsp;</p><h2>2. Contexte</h2><p>&nbsp;</p><h2>3. Analyse</h2><p>&nbsp;</p><h2>4. Conclusion et recommandations</h2><p>&nbsp;</p>" },
+    { name: "📝 Compte-rendu de réunion", html: "<h1>Compte-rendu — [Réunion]</h1><p><small>Date : [date] · Présents : [noms]</small></p><h2>Ordre du jour</h2><ul><li>Point 1</li><li>Point 2</li></ul><h2>Décisions</h2><p>&nbsp;</p><h2>Actions à mener</h2><ul class='checklist'><li>Action 1 — responsable — échéance</li><li>Action 2 — responsable — échéance</li></ul>" },
+    { name: "📖 Chapitre de récit", html: "<h1>Chapitre [n] — [Titre]</h1><p>&nbsp;</p><p>[Il était une fois…]</p>" },
+    { name: "✅ To-do liste", html: "<h1>Ma liste de tâches</h1><ul class='checklist'><li>Première tâche</li><li>Deuxième tâche</li><li>Troisième tâche</li></ul>" }
+  ];
+  (function renderTemplates() {
+    const list = document.getElementById("tplList");
+    templates.forEach(function (t) {
+      const d = document.createElement("div");
+      d.className = "tpl-item";
+      d.textContent = t.name;
+      d.addEventListener("click", function () {
+        if (dirty && !confirm("Insérer ce modèle ? Le contenu non enregistré sera remplacé.")) return;
+        editor.innerHTML = t.html;
+        document.getElementById("templatesPanel").classList.remove("open");
+        markDirty(); showToast("Modèle inséré 📋");
+      });
+      list.appendChild(d);
+    });
+  })();
+
+  /* ============ POMODORO ============ */
+  let pomoLeft = 25 * 60, pomoTimer = null, pomoWork = true;
+  function pomoRender() {
+    const m = Math.floor(pomoLeft / 60), s = pomoLeft % 60;
+    document.getElementById("pomoTime").textContent = String(m).padStart(2, "0") + ":" + String(s).padStart(2, "0");
+    document.getElementById("pomoPhase").textContent = pomoWork ? "Écriture ✍️" : "Pause ☕";
+  }
+  document.getElementById("pomoStart").addEventListener("click", function () {
+    if (pomoTimer) {
+      clearInterval(pomoTimer); pomoTimer = null;
+      this.textContent = "▶"; return;
+    }
+    this.textContent = "⏸";
+    pomoTimer = setInterval(function () {
+      pomoLeft--;
+      if (pomoLeft <= 0) {
+        clearInterval(pomoTimer); pomoTimer = null;
+        pomoWork = !pomoWork;
+        pomoLeft = pomoWork ? 25 * 60 : 5 * 60;
+        showToast(pomoWork ? "Pause terminée — au boulot ✍️" : "Bien joué ! Pause de 5 min ☕");
+        document.getElementById("pomoStart").textContent = "▶";
+      }
+      pomoRender();
+    }, 1000);
+  });
+  document.getElementById("pomoReset").addEventListener("click", function () {
+    clearInterval(pomoTimer); pomoTimer = null;
+    pomoWork = true; pomoLeft = 25 * 60;
+    document.getElementById("pomoStart").textContent = "▶";
+    pomoRender();
+  });
+  pomoRender();
+
+  /* ============ PANNEAUX ============ */
+  function togglePanel(id) {
+    document.querySelectorAll(".panel").forEach(function (p) { if (p.id !== id) p.classList.remove("open"); });
+    document.getElementById(id).classList.toggle("open");
+    if (id === "versionsPanel") renderVersions();
+    if (id === "libPanel") renderLibrary();
+    if (id === "aiPanel") document.getElementById("aiKey").value = lsGet("lm6-mistral-key", "");
+  }
+  document.getElementById("btnEmotes").addEventListener("click", function () { togglePanel("emotePanel"); });
+  document.getElementById("btnFind").addEventListener("click", function () { togglePanel("findPanel"); });
+  document.getElementById("btnOutline").addEventListener("click", function () { togglePanel("outlinePanel"); });
+  document.getElementById("btnVersions").addEventListener("click", function () { togglePanel("versionsPanel"); });
+  document.getElementById("btnLib").addEventListener("click", function () { togglePanel("libPanel"); });
+  document.getElementById("btnStats").addEventListener("click", function () { togglePanel("statsPanel"); });
+  document.getElementById("btnTemplates").addEventListener("click", function () { togglePanel("templatesPanel"); });
+  document.getElementById("btnCheck").addEventListener("click", function () { runCheck(); });
+  document.getElementById("btnAI").addEventListener("click", function () { togglePanel("aiPanel"); });
+  document.querySelectorAll(".close").forEach(function (c) {
+    c.addEventListener("click", function () { document.getElementById(c.dataset.close).classList.remove("open"); });
+  });
+
+  /* ============ ÉMOTES ============ */
+  function insertEmote(src) {
+    document.execCommand("insertHTML", false, '<img class="emote" src="' + src + '" alt="émote" />');
+    editor.focus(); markDirty();
+  }
+  const furinaGrid = document.getElementById("furinaGrid");
+  furinaEmotes.forEach(function (em) {
+    const b = document.createElement("button");
+    b.innerHTML = '<img src="' + em.svg + '" alt="' + em.label + '"/><span>' + em.label + '</span>';
+    b.addEventListener("mousedown", function (e) { e.preventDefault(); });
+    b.addEventListener("click", function () { insertEmote(em.svg); });
+    furinaGrid.appendChild(b);
+  });
+  const emojiGrid = document.getElementById("emojiGrid");
+  emojis.forEach(function (e) {
+    const b = document.createElement("button");
+    b.textContent = e;
+    b.addEventListener("mousedown", function (ev) { ev.preventDefault(); });
+    b.addEventListener("click", function () {
+      document.execCommand("insertText", false, e); editor.focus(); markDirty();
+    });
+    emojiGrid.appendChild(b);
+  });
+  let customEmotes = lsGet("lm6doc-emotes", []);
+  function renderCustom() {
+    const grid = document.getElementById("customGrid");
+    grid.innerHTML = "";
+    customEmotes.forEach(function (src, i) {
+      const b = document.createElement("button");
+      b.innerHTML = '<img src="' + src + '" alt="émote"/><span>Émote ' + (i + 1) + '</span>';
+      b.addEventListener("mousedown", function (e) { e.preventDefault(); });
+      b.addEventListener("click", function () { insertEmote(src); });
+      grid.appendChild(b);
+    });
+  }
+  document.getElementById("btnAddEmote").addEventListener("click", function () { document.getElementById("emoteFile").click(); });
+  document.getElementById("emoteFile").addEventListener("change", function () {
+    Array.from(this.files).forEach(function (f) {
+      const reader = new FileReader();
+      reader.onload = function () {
+        customEmotes.push(reader.result);
+        lsSet("lm6doc-emotes", customEmotes);
+        renderCustom(); showToast("Émote ajoutée ⭐");
+      };
+      reader.readAsDataURL(f);
+    });
+    this.value = "";
+  });
+  renderCustom();
+
+  /* ============ RECHERCHER & REMPLACER ============ */
+  function replaceInTextNodes(search, replacement, all) {
+    let count = 0;
+    const walker = document.createTreeWalker(editor, NodeFilter.SHOW_TEXT);
+    let node;
+    while ((node = walker.nextNode())) {
+      const idx = node.data.indexOf(search);
+      if (idx !== -1) {
+        node.data = node.data.substring(0, idx) + replacement + node.data.substring(idx + search.length);
+        count++;
+        if (!all) break;
+      }
+    }
+    return count;
+  }
+  document.getElementById("btnReplaceOne").addEventListener("click", function () {
+    const s = document.getElementById("findInput").value;
+    if (!s) return;
+    const n = replaceInTextNodes(s, document.getElementById("replaceInput").value, false);
+    document.getElementById("findInfo").textContent = n ? "1 remplacement effectué ✓" : "Non trouvé.";
+    if (n) markDirty();
+  });
+  document.getElementById("btnReplaceAll").addEventListener("click", function () {
+    const s = document.getElementById("findInput").value;
+    if (!s) return;
+    let total = 0, n;
+    do { n = replaceInTextNodes(s, document.getElementById("replaceInput").value, false); total += n; } while (n);
+    document.getElementById("findInfo").textContent = total + " remplacement(s) effectué(s) ✓";
+    if (total) markDirty();
+  });
+
+  /* ============ CORRECTION — LANGUAGETOOL (🇩🇪🇪🇺) ============ */
+  async function runCheck() {
+    const issuesEl = document.getElementById("issues");
+    togglePanel("checkPanel");
+    issuesEl.innerHTML = "<p>⏳ Analyse en cours…</p>";
+    const text = editor.innerText;
+    if (!text.trim()) { issuesEl.innerHTML = "<p>Rien à vérifier — écris d'abord quelque chose 😊</p>"; return; }
+    try {
+      const params = new URLSearchParams({ text: text, language: "fr" });
+      const resp = await fetch("https://api.languagetool.org/v2/check", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: params.toString()
+      });
+      const data = await resp.json();
+      if (!data.matches || data.matches.length === 0) {
+        issuesEl.innerHTML = "<p>✨ Aucune faute détectée. Bravo !</p>";
+        return;
+      }
+      issuesEl.innerHTML = "";
+      data.matches.forEach(function (m) {
+        const div = document.createElement("div");
+        div.className = "issue";
+        const ctx = text.substring(m.offset, m.offset + m.length);
+        const suggBtns = m.replacements.slice(0, 4).map(function (r, i) {
+          return '<button data-repl="' + r.value.replace(/"/g, "&quot;") + '">' + (i === 0 ? "✓ " : "") + r.value + "</button>";
+        }).join("");
+        div.innerHTML = "<b>" + m.shortMessage + "</b> — " + m.message +
+          '<div class="ctx">« …' + ctx + "… »</div>" +
+          '<div class="sugg">' + suggBtns + "</div>" +
+          '<div class="rule">Règle : ' + m.rule.id + " · LanguageTool 🇩🇪🇪🇺</div>";
+        div.querySelectorAll(".sugg button").forEach(function (btn) {
+          btn.addEventListener("click", function () {
+            const n = replaceInTextNodes(ctx, btn.dataset.repl, false);
+            if (n) { showToast("Corrigé ✓"); markDirty(); div.remove(); }
+          });
+        });
+        issuesEl.appendChild(div);
+      });
+    } catch (err) {
+      issuesEl.innerHTML = "<p>⚠️ Impossible de joindre l'API LanguageTool. Hors aperçu canvas, ouvre le fichier téléchargé directement dans ton navigateur (connexion requise).</p>";
+    }
+  }
+
+  /* ============ ASSISTANT IA — MISTRAL (🇫🇷🇪🇺, optionnel) ============ */
+  const aiPrompts = {
+    improve: "Améliore la clarté, le style et la fluidité du texte suivant en français, sans changer son sens. Renvoie uniquement le texte amélioré :",
+    summary: "Résume le texte suivant en français en quelques phrases claires :",
+    continue: "Continue le texte suivant de façon naturelle, dans le même style et la même langue (3 à 5 phrases maximum) :",
+    shorten: "Raccourcis le texte suivant en gardant l'essentiel, en français :",
+    expand: "Développe le texte suivant avec plus de détails et d'exemples, en français :",
+    tone: "Réécris le texte suivant dans un ton plus vivant et engageant, en français :",
+    translate: "Traduis le texte suivant en anglais. Renvoie uniquement la traduction :",
+    ideas: "Propose 5 idées de développement ou de structure pour le texte suivant, en français, en liste numérotée :"
+  };
+  document.getElementById("btnSaveKey").addEventListener("click", function () {
+    lsSet("lm6-mistral-key", document.getElementById("aiKey").value.trim());
+    showToast(document.getElementById("aiKey").value.trim() ? "Clé enregistrée localement 🔒" : "Clé supprimée");
+  });
+  document.querySelectorAll(".ai-action").forEach(function (btn) {
+    btn.addEventListener("click", async function () {
+      const key = lsGet("lm6-mistral-key", "");
+      if (!key) { showToast("Ajoute d'abord ta clé API Mistral 🔑"); document.getElementById("aiKey").focus(); return; }
+      const action = btn.dataset.action;
+      const target = document.getElementById("aiTarget").value;
+      const sel = window.getSelection().toString();
+      const text = target === "selection" ? sel : editor.innerText;
+      if (!text.trim()) { showToast("Sélectionne du texte ou choisis « tout le document » 🙂"); return; }
+      const resultEl = document.getElementById("aiResult");
+      resultEl.style.display = "block";
+      resultEl.textContent = "⏳ Mistral réfléchit…";
+      try {
+        const resp = await fetch("https://api.mistral.ai/v1/chat/completions", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "Authorization": "Bearer " + key },
+          body: JSON.stringify({
+            model: "mistral-small-latest",
+            messages: [{ role: "user", content: aiPrompts[action] + "\n\n" + text }]
+          })
+        });
+        const data = await resp.json();
+        if (data.error) { resultEl.textContent = "⚠️ " + (data.error.message || "Erreur API"); return; }
+        aiLastResult = data.choices[0].message.content.trim();
+        resultEl.textContent = aiLastResult;
+      } catch (err) {
+        resultEl.textContent = "⚠️ Impossible de joindre api.mistral.ai (🇫🇷🇪🇺). Hors aperçu canvas, ouvre le fichier téléchargé directement dans ton navigateur, en ligne.";
+      }
+    });
+  });
+  document.getElementById("btnAiInsert").addEventListener("click", function () {
+    if (!aiLastResult) { showToast("Lance d'abord une action IA ✨"); return; }
+    document.execCommand("insertHTML", false, "<p>" + aiLastResult.replace(/</g, "&lt;").replace(/\n/g, "<br>") + "</p>");
+    editor.focus(); markDirty(); showToast("Inséré ✓");
+  });
+  document.getElementById("btnAiReplace").addEventListener("click", function () {
+    if (!aiLastResult) { showToast("Lance d'abord une action IA ✨"); return; }
+    const sel = window.getSelection();
+    if (sel.isCollapsed) { showToast("Sélectionne le texte à remplacer 🔄"); return; }
+    document.execCommand("insertHTML", false, aiLastResult.replace(/</g, "&lt;").replace(/\n/g, "<br>"));
+    editor.focus(); markDirty(); showToast("Remplacé ✓");
+  });
+
+  /* ============ DICTÉE & LECTURE VOCALE (locales au navigateur) ============ */
+  let rec = null, recOn = false;
+  document.getElementById("btnDictate").addEventListener("click", function () {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) { showToast("Dictée non supportée par ce navigateur 😕"); return; }
+    if (recOn && rec) { rec.stop(); return; }
+    rec = new SR();
+    rec.lang = "fr-FR"; rec.continuous = true; rec.interimResults = false;
+    rec.onresult = function (e) {
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        if (e.results[i].isFinal) {
+          document.execCommand("insertText", false, e.results[i][0].transcript.trim() + " ");
+        }
+      }
+    }
+    rec.onend = function () { recOn = false; dictBtnUpdate(); };
+    rec.onerror = function () { showToast("Micro indisponible ou refusé 🎙️"); recOn = false; dictBtnUpdate(); };
+    rec.start(); recOn = true; dictBtnUpdate();
+    showToast("Dictée active — parle, j'écris 🎙️");
+  });
+  function dictBtnUpdate() {
+    const b = document.getElementById("btnDictate");
+    b.classList.toggle("rec-btn", recOn);
+    b.title = recOn ? "Arrêter la dictée" : "Dicter (reconnaissance vocale locale)";
+  }
+  document.getElementById("btnSpeak").addEventListener("click", function () {
+    if (speechSynthesis.speaking) { speechSynthesis.cancel(); showToast("Lecture arrêtée 🔇"); return; }
+    const text = window.getSelection().toString() || editor.innerText;
+    if (!text.trim()) { showToast("Rien à lire 🙂"); return; }
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = "fr-FR";
+    speechSynthesis.speak(u);
+    showToast("Lecture à voix haute 🔊 (voix locale du navigateur)");
+  });
+
+  /* ============ EXPORT MULTI-FORMAT / SAUVEGARDE ============ */
+  function download(content, filename, mime) {
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([content], { type: mime }));
+    a.download = filename;
+    a.click();
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 2000);
+  }
+  function htmlToMarkdown() {
+    let md = editor.innerHTML;
+    md = md.replace(/<hr\s*\/?>/g, "\n---\n")
+      .replace(/<h1[^>]*>(.*?)<\/h1>/g, "\n# $1\n")
+      .replace(/<h2[^>]*>(.*?)<\/h2>/g, "\n## $1\n")
+      .replace(/<h3[^>]*>(.*?)<\/h3>/g, "\n### $1\n")
+      .replace(/<blockquote[^>]*>(.*?)<\/blockquote>/g, "\n> $1\n")
+      .replace(/<(b|strong)>(.*?)<\/\1>/g, "**$2**")
+      .replace(/<(i|em)>(.*?)<\/\1>/g, "_$2_")
+      .replace(/<s>(.*?)<\/s>/g, "~~$1~~")
+      .replace(/<li[^>]*>(.*?)<\/li>/g, "- $1\n")
+      .replace(/<\/ul>|<\/ol>/g, "\n")
+      .replace(/<p[^>]*>(.*?)<\/p>/g, "$1\n\n")
+      .replace(/<br\s*\/?>/g, "\n")
+      .replace(/<pre>([\s\S]*?)<\/pre>/g, "\n```\n$1\n```\n")
+      .replace(/<[^>]+>/g, "");
+    const el = document.createElement("div");
+    el.innerHTML = md;
+    return el.textContent.replace(/\n{3,}/g, "\n\n").trim();
+  }
+  function save() {
+    const name = (docName.value.trim() || "sans-titre") + "." + EXT;
+    download(JSON.stringify({ app: "EditeurLM6", version: 4, name: docName.value.trim(), html: editor.innerHTML }), name, "application/json");
+    dirty = false;
+    setStatus("Enregistré sous « " + name + " » ✓");
+    showToast("Document enregistré 💾");
+  }
+  document.getElementById("btnSave").addEventListener("click", save);
+  document.getElementById("btnPrint").addEventListener("click", function () { window.print(); });
+  document.getElementById("btnExport").addEventListener("click", function () {
+    document.getElementById("exportDialog").showModal();
+  });
+  document.querySelectorAll("#exportDialog [data-exp]").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      document.getElementById("exportDialog").close();
+      const base = docName.value.trim() || "sans-titre";
+      if (btn.dataset.exp === "html") {
+        const html = "<!doctype html><html lang='fr'><head><meta charset='UTF-8'><title>" + base +
+          "</title><style>body{font-family:'Segoe UI',sans-serif;max-width:800px;margin:40px auto;padding:0 20px;line-height:1.6}img.emote{height:64px;vertical-align:middle}img.content-img{max-width:100%;border-radius:8px}blockquote{border-left:4px solid #6d28d9;padding:.3em 1em;color:#6b7280;background:rgba(109,40,217,.05)}table{border-collapse:collapse;width:100%}td,th{border:1px solid #e5e7eb;padding:8px}pre{background:#f3f4f6;padding:12px;border-radius:8px}.toc-box{border:1px solid #e5e7eb;border-radius:10px;padding:16px 22px}.toc-box a{display:block;color:#6d28d9}.note-span{background:transparent}.toc-box a{display:block;color:#6d28d9}</style></head><body>" +
+          editor.innerHTML + "</body></html>";
+        download(html, base + ".html", "text/html");
+        showToast("Export HTML créé 🌐");
+      } else if (btn.dataset.exp === "md") {
+        download(htmlToMarkdown(), base + ".md", "text/markdown");
+        showToast("Export Markdown créé 📝");
+      } else if (btn.dataset.exp === "txt") {
+        download(editor.innerText, base + ".txt", "text/plain");
+        showToast("Export TXT créé 📃");
+      } else { save(); }
+    });
+  });
+  document.getElementById("btnOpen").addEventListener("click", function () {
+    if (dirty) { dialog.showModal(); } else { fileInput.value = ""; fileInput.click(); }
+  });
+  document.getElementById("dlgCancel").addEventListener("click", function () { dialog.close(); });
+  document.getElementById("dlgConfirm").addEventListener("click", function () {
+    dialog.close(); fileInput.value = ""; fileInput.click();
+  });
+  fileInput.addEventListener("change", function () {
+    const file = this.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function () {
+      try {
+        if (file.name.endsWith(".lm6doc")) {
+          const data = JSON.parse(reader.result);
+          if (data.app !== "EditeurLM6") { alert("Ce fichier n'est pas un document LM6 valide."); return; }
+          currentDocId = uid();
+          editor.innerHTML = data.html || "";
+          docName.value = data.name || "";
+        } else {
+          // .md ou .txt : import Markdown simple
+          currentDocId = uid();
+          let md = reader.result.replace(/\r/g, "");
+          let html = md
+            .replace(/^### (.*)$/gm, "<h3>$1</h3>")
+            .replace(/^## (.*)$/gm, "<h2>$1</h2>")
+            .replace(/^# (.*)$/gm, "<h1>$1</h1>")
+            .replace(/^&gt; (.*)$/gm, "<blockquote>$1</blockquote>")
+            .replace(/\*\*(.+?)\*\*/g, "<b>$1</b>")
+            .replace(/_(.+?)_/g, "<i>$1</i>")
+            .replace(/^---$/gm, "<hr>")
+            .split(/\n{2,}/).map(function (p) {
+              return /^<(h\d|hr|blockquote)/.test(p) ? p : "<p>" + p.replace(/\n/g, "<br>") + "</p>";
+            }).join("");
+          editor.innerHTML = html;
+          docName.value = file.name.replace(/\.(md|markdown|txt)$/i, "");
+        }
+        dirty = false;
+        setStatus("« " + file.name + " » ouvert ✓");
+        updateCounts();
+      } catch (err) { alert("Impossible de lire ce fichier : " + err.message); }
+    };
+    reader.readAsText(file);
+  });
+
+  /* ============ THÈME / ZEN / ZOOM / AIDE ============ */
+  document.getElementById("btnTheme").addEventListener("click", function () {
+    document.body.classList.toggle("dark");
+    this.textContent = document.body.classList.contains("dark") ? "☀️" : "🌙";
+  });
+  document.getElementById("btnZen").addEventListener("click", function () {
+    document.body.classList.toggle("zen");
+    showToast(document.body.classList.contains("zen") ? "Mode focus 🧘" : "Mode focus désactivé");
+  });
+  function applyZoom() {
+    document.getElementById("pagesWrap").style.transform = "scale(" + zoom + ")";
+    document.getElementById("zoomLabel").textContent = Math.round(zoom * 100) + " %";
+  }
+  document.getElementById("zoomIn").addEventListener("click", function () { zoom = Math.min(1.5, zoom + .1); applyZoom(); });
+  document.getElementById("zoomOut").addEventListener("click", function () { zoom = Math.max(.5, zoom - .1); applyZoom(); });
+  document.getElementById("btnHelp").addEventListener("click", function () { document.getElementById("helpDialog").showModal(); });
+  document.getElementById("helpClose").addEventListener("click", function () { document.getElementById("helpDialog").close(); });
+
+  /* ============ RACCOURCIS ============ */
+  document.addEventListener("keydown", function (e) {
+    if (!(e.ctrlKey || e.metaKey)) return;
+    if (e.key === "s") { e.preventDefault(); save(); }
+    if (e.key === "f") { e.preventDefault(); togglePanel("findPanel"); document.getElementById("findInput").focus(); }
+    if (e.key === "e") { e.preventDefault(); togglePanel("emotePanel"); }
+    if (e.key === "k") { e.preventDefault(); document.getElementById("btnLink").click(); }
+  });
+  editor.addEventListener("keydown", function (e) {
+    if (e.key === "Tab") { e.preventDefault(); document.execCommand("insertHTML", false, "&nbsp;&nbsp;&nbsp;&nbsp;"); }
+    if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+      e.preventDefault();
+      document.execCommand("insertHTML", false, '<hr style="page-break-after:always;border:none"><p>&nbsp;</p>');
+      showToast("Saut de page inséré 📄");
+    }
+  });
+  document.addEventListener("selectionchange", function () {
+    if (document.activeElement !== editor) return;
+    document.querySelectorAll(".btn[data-cmd]").forEach(function (btn) {
+      if (["bold", "italic", "underline", "strikeThrough"].includes(btn.dataset.cmd)) {
+        btn.classList.toggle("active", document.queryCommandState(btn.dataset.cmd));
+      }
+    });
+  });
+
+  editor.addEventListener("input", markDirty);
+  docName.addEventListener("input", markDirty);
+  editor.focus();
+  updateCounts();
+  renderVersions();
+})();
+</script>
+
+</body>
+</html>

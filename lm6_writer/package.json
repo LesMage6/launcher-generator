@@ -1,0 +1,32 @@
+{
+  "name": "editeur-lm6",
+  "productName": "Éditeur LM6",
+  "version": "4.0.0",
+  "description": "Éditeur de texte LM6 V4 — 100 % européen 🇫🇷🇪🇺",
+  "main": "main.js",
+  "author": "LM6",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder"
+  },
+  "devDependencies": {
+    "electron": "^33.0.0",
+    "electron-builder": "^25.0.0"
+  },
+  "build": {
+    "appId": "eu.lm6.editeur",
+    "productName": "Éditeur LM6",
+    "directories": { "output": "dist" },
+    "win": {
+      "target": "nsis",
+      "icon": "icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "shortcutName": "Éditeur LM6"
+    }
+  }
+}
